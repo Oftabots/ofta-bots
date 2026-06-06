@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ autorizado: false, mensaje: 'Usuario no encontrado' });
     }
 
-    if (usuario.activo !== true && usuario.activo !== 'TRUE') {
+    if (usuario.activo.toString().toLowerCase() !== 'true') {
       return res.status(200).json({ autorizado: false, mensaje: 'Licencia inactiva' });
     }
 
