@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+export default function handler(req, res) {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  
+  const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -25,118 +28,69 @@
   .step-num { background: #185FA5; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
   .step-txt { font-size: 13px; color: #444; line-height: 1.5; }
   .footer { font-size: 12px; color: #aaa; margin-top: 10px; text-align: center; }
+  a { color: #0C447C; text-decoration: none; }
 </style>
 </head>
 <body>
-
 <div class="logo">🤖</div>
 <h1>Oftabots</h1>
 <p class="sub">Instala tus bots en la barra de marcadores</p>
 
 <div class="card">
-  <div class="card-header">
-    <span>📋</span>
-    <h2>Instrucciones</h2>
+  <div class="card-header"><span>🚀</span><h2>Tus Bots</h2></div>
+  <p class="instruccion">Arrastra cada bot a tu barra de marcadores:</p>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">📋</span>
+      <div><div class="bot-nombre"><a id="link-cami" href="#">Inicio CAMI Suba</a></div><div class="bot-desc">Abre historia clínica en CAMI</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
   </div>
-  <div class="step">
-    <div class="step-num">1</div>
-    <div class="step-txt">Asegúrate de tener visible la <strong>barra de marcadores</strong> en Chrome (Ctrl + Shift + B)</div>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">📋</span>
+      <div><div class="bot-nombre"><a id="link-hsb" href="#">Inicio HSB</a></div><div class="bot-desc">Abre historia clínica en HSB</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
   </div>
-  <div class="step">
-    <div class="step-num">2</div>
-    <div class="step-txt">Arrastra cada bot desde aquí hasta la barra de marcadores</div>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">🔬</span>
+      <div><div class="bot-nombre"><a id="link-examenes" href="#">Exámenes</a></div><div class="bot-desc">Solicitud de exámenes</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
   </div>
-  <div class="step">
-    <div class="step-num">3</div>
-    <div class="step-txt">¡Listo! Úsalos directamente desde Dinámica</div>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">🔪</span>
+      <div><div class="bot-nombre"><a id="link-cirugia" href="#">Cirugía</a></div><div class="bot-desc">Prequirúrgicos y consentimiento</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
+  </div>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">💊</span>
+      <div><div class="bot-nombre"><a id="link-formulacion" href="#">Formulación</a></div><div class="bot-desc">Fórmula médica oftalmológica</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header">
-    <span>🚀</span>
-    <h2>Tus Bots</h2>
-  </div>
-  <p class="instruccion">Arrastra cada bot a tu barra de marcadores:</p>
-
-  <div class="bot-link">
-    <div class="bot-info">
-      <span class="bot-emoji">🔑</span>
-      <div>
-        <div class="bot-nombre"><a id="link-activar" href="#" style="color:#0C447C;text-decoration:none;">Activar Bots</a></div>
-        <div class="bot-desc">Activa cada mañana al llegar</div>
-      </div>
-    </div>
-    <span class="drag-hint">← arrastra</span>
-  </div>
-
-  <div class="bot-link">
-    <div class="bot-info">
-      <span class="bot-emoji">📋</span>
-      <div>
-        <div class="bot-nombre"><a id="link-hsb" href="#" style="color:#0C447C;text-decoration:none;">Inicio HSB</a></div>
-        <div class="bot-desc">Abre historia clínica en HSB</div>
-      </div>
-    </div>
-    <span class="drag-hint">← arrastra</span>
-  </div>
-
-  <div class="bot-link">
-    <div class="bot-info">
-      <span class="bot-emoji">📋</span>
-      <div>
-        <div class="bot-nombre"><a id="link-cami" href="#" style="color:#0C447C;text-decoration:none;">Inicio CAMI</a></div>
-        <div class="bot-desc">Abre historia clínica en CAMI</div>
-      </div>
-    </div>
-    <span class="drag-hint">← arrastra</span>
-  </div>
-
-  <div class="bot-link">
-    <div class="bot-info">
-      <span class="bot-emoji">🔬</span>
-      <div>
-        <div class="bot-nombre"><a id="link-examenes" href="#" style="color:#0C447C;text-decoration:none;">Exámenes</a></div>
-        <div class="bot-desc">Solicitud de exámenes</div>
-      </div>
-    </div>
-    <span class="drag-hint">← arrastra</span>
-  </div>
-
-  <div class="bot-link">
-    <div class="bot-info">
-      <span class="bot-emoji">🔪</span>
-      <div>
-        <div class="bot-nombre"><a id="link-cirugia" href="#" style="color:#0C447C;text-decoration:none;">Cirugía</a></div>
-        <div class="bot-desc">Prequirúrgicos y consentimiento</div>
-      </div>
-    </div>
-    <span class="drag-hint">← arrastra</span>
-  </div>
-
-  <div class="bot-link">
-    <div class="bot-info">
-      <span class="bot-emoji">💊</span>
-      <div>
-        <div class="bot-nombre"><a id="link-formulacion" href="#" style="color:#0C447C;text-decoration:none;">Formulación</a></div>
-        <div class="bot-desc">Fórmula médica oftalmológica</div>
-      </div>
-    </div>
-    <span class="drag-hint">← arrastra</span>
-  </div>
+  <div class="card-header"><span>📋</span><h2>Instrucciones</h2></div>
+  <div class="step"><div class="step-num">1</div><div class="step-txt">Asegúrate de tener visible la <strong>barra de marcadores</strong> en Chrome (Ctrl + Shift + B)</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-txt">Arrastra cada bot desde aquí hasta la barra de marcadores</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-txt">¡Listo! Úsalos directamente desde Dinámica</div></div>
 </div>
 
 <p class="footer">Oftabots © 2026 · Solo para uso autorizado</p>
 
 <script>
-const BOTS = {
-  activar: `javascript:(function(){alert('Sistema de activación próximamente');})();void(0);`,
-  hsb: `javascript:(async function(){fetch('https://ofta-bots.vercel.app/api/historia?sede=HSB').then(r=>r.json()).then(async({codigoSede,folio})=>{const d=m=>new Promise(r=>setTimeout(r,m));const ev=(el)=>{['mousedown','mouseup','click'].forEach(t=>el.dispatchEvent(new MouseEvent(t,{bubbles:true})));};if(!document.querySelector('input[name="in_HCCM02N06"]')){const searchIcon=Array.from(document.querySelectorAll('.dx-icon-search')).find(i=>{const nav=i.closest('.dx-drawer-panel-content, .menu-lateral, .side-nav, .dx-treeview');return!nav;});if(searchIcon){searchIcon.click();await d(400);}let f1=document.querySelector('input[maxlength="10"]:not([readonly])');if(f1){f1.focus();document.execCommand('insertText',false,folio);f1.dispatchEvent(new Event('change',{bubbles:true}));await d(300);const ent={key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true};f1.dispatchEvent(new KeyboardEvent('keydown',ent));f1.dispatchEvent(new KeyboardEvent('keypress',ent));await d(4000);}let f2=document.querySelector('input[maxlength="20"]:not([readonly])');if(f2){f2.focus();document.execCommand('insertText',false,codigoSede);f2.dispatchEvent(new Event('change',{bubbles:true}));await d(400);f2.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',code:'Tab',keyCode:9,bubbles:true}));await d(600);const btnA=Array.from(document.querySelectorAll('.dx-button-text')).find(el=>el.innerText.includes('Abrir Folio'));if(btnA){btnA.click();await d(6000);}}const menuHC=Array.from(document.querySelectorAll('.dx-button-text')).find(el=>el.innerText.includes('Menu HC'));if(menuHC){menuHC.click();await d(400);}const planManejo=document.querySelector('span[title*="Ctrl + Alt + P"]');if(planManejo){planManejo.click();await d(400);}const solServicios=document.querySelector('span[title*="Ctrl + Alt + S"]');if(solServicios){solServicios.click();await d(400);}}if(document.activeElement)document.activeElement.blur();await d(300);document.dispatchEvent(new KeyboardEvent('keydown',{key:'h',code:'KeyH',keyCode:72,ctrlKey:true,altKey:true,bubbles:true}));await d(4000);const pre=Array.from(document.querySelectorAll('.dx-radiobutton')).find(el=>el.innerText.trim()==='Presencial');if(pre){ev(pre);await d(400);const nos=Array.from(document.querySelectorAll('.dx-radiobutton')).filter(el=>el.innerText.trim()==='No');for(const n of nos){ev(n);await d(150);}['in_HCCM02N06','in_HCCM02N07','in_HCCM02N08'].forEach(id=>{const inp=document.querySelector('input[name="'+id+'"]');if(inp){inp.focus();document.execCommand('insertText',false,'0');inp.blur();}});await d(800);const tPlan=Array.from(document.querySelectorAll('.dx-tab-text-span')).find(s=>s.innerText.includes('PLAN DE MANEJO')||s.innerText.includes('ANALISÍS'));if(tPlan){tPlan.closest('.dx-tab').click();await d(2000);const nosP=Array.from(document.querySelectorAll('.dx-radiobutton')).filter(b=>b.innerText.trim().toUpperCase()==='NO'&&b.offsetParent!==null);for(const b of nosP){ev(b);await d(150);}}await d(800);const tDer=Array.from(document.querySelectorAll('.dx-tab-text-span')).find(s=>s.innerText.includes('DERECHOS Y DEBERES'));if(tDer){tDer.closest('.dx-tab').click();await d(800);const m=x=>{const i=Array.from(document.querySelectorAll('.dx-list-item-content')).find(e=>e.innerText.includes(x));if(i){const c=i.parentElement.querySelector('.dx-checkbox');if(c)c.click();}};m("1. Recibir atención");await d(300);m("1. Brindar trato");await d(300);}await d(600);const tCon=Array.from(document.querySelectorAll('.dx-tab-text-span')).find(s=>s.textContent.trim().includes('CONSULTA'));if(tCon){tCon.closest('.dx-tab').click();await d(600);const txt=document.querySelector('textarea[name="in_HCCM03N09"]');if(txt)txt.focus();}}});})();void(0);`
-};
-
-document.getElementById('link-activar').href = BOTS.activar;
-document.getElementById('link-hsb').href = BOTS.hsb;
+fetch('/api/bots').then(r=>r.json()).then(bots=>{
+  document.getElementById('link-cami').href = bots.cami;
+  document.getElementById('link-hsb').href = bots.hsb;
+  document.getElementById('link-examenes').href = bots.examenes;
+  document.getElementById('link-cirugia').href = bots.cirugia;
+  document.getElementById('link-formulacion').href = bots.formulacion;
+});
 </script>
-
 </body>
-</html>
+</html>`;
+
+  res.status(200).send(html);
+}
