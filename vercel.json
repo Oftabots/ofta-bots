@@ -1,5 +1,6 @@
 {
-  "rewrites": [
-    { "source": "/instalar", "destination": "/public/instalar.html" }
+  "version": 2,
+  "routes": [
+    { "src": "/instalar", "dest": "/public/instalar.html" }
   ]
 }
