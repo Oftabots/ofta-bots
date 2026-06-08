@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/instalar", "destination": "/public/instalar.html" }
+  ]
+}
