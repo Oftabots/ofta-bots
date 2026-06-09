@@ -40,6 +40,12 @@ a { color: #0C447C; text-decoration: none; }
   <p class="instruccion">Arrastra cada bot a tu barra de marcadores:</p>
 
   <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">👥</span>
+      <div><div class="bot-nombre"><a id="link-pacientes" href="#">Pacientes</a></div><div class="bot-desc">Exportar listado de pacientes a Sheets</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
+  </div>
+
+  <div class="bot-link">
     <div class="bot-info"><span class="bot-emoji">📋</span>
       <div><div class="bot-nombre"><a id="link-cami" href="#">Inicio CAMI Suba</a></div><div class="bot-desc">Abre historia clínica en CAMI</div></div>
     </div><span class="drag-hint">← Arrastra</span>
@@ -74,13 +80,14 @@ a { color: #0C447C; text-decoration: none; }
   <div class="card-header"><span>📋</span><h2>Instrucciones</h2></div>
   <div class="step"><div class="step-num">1</div><div class="step-txt">Asegurate de tener visible la <strong>barra de marcadores</strong> en Chrome (Ctrl + Shift + B)</div></div>
   <div class="step"><div class="step-num">2</div><div class="step-txt">Arrastra cada bot desde aqui hasta la barra de marcadores</div></div>
-  <div class="step"><div class="step-num">3</div><div class="step-txt">Listo! Usalos directamente desde Dinamica</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-txt">Usalos directamente desde Dinamica</div></div>
 </div>
 
 <p class="footer">Oftabots 2026 - Solo para uso autorizado</p>
 
 <script>
 fetch('/api/bots').then(r=>r.json()).then(bots=>{
+  document.getElementById('link-pacientes').href = bots.pacientes;
   document.getElementById('link-cami').href = bots.cami;
   document.getElementById('link-hsb').href = bots.hsb;
   document.getElementById('link-examenes').href = bots.examenes;
