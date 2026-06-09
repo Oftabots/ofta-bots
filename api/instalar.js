@@ -40,12 +40,6 @@ a { color: #0C447C; text-decoration: none; }
   <p class="instruccion">Arrastra cada bot a tu barra de marcadores:</p>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">👥</span>
-      <div><div class="bot-nombre"><a id="link-pacientes" href="#">Pacientes</a></div><div class="bot-desc">Exportar listado de pacientes a Sheets</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
-  </div>
-
-  <div class="bot-link">
     <div class="bot-info"><span class="bot-emoji">📋</span>
       <div><div class="bot-nombre"><a id="link-cami" href="#">Inicio CAMI Suba</a></div><div class="bot-desc">Abre historia clínica en CAMI</div></div>
     </div><span class="drag-hint">← Arrastra</span>
@@ -74,6 +68,12 @@ a { color: #0C447C; text-decoration: none; }
       <div><div class="bot-nombre"><a id="link-formulacion" href="#">Formulacion</a></div><div class="bot-desc">Formula medica oftalmologica</div></div>
     </div><span class="drag-hint">← Arrastra</span>
   </div>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">📊</span>
+      <div><div class="bot-nombre"><a id="link-pacientes" href="#">Productividad</a></div><div class="bot-desc">Exportar listado de pacientes a Sheets</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
+  </div>
 </div>
 
 <div class="card">
@@ -87,12 +87,12 @@ a { color: #0C447C; text-decoration: none; }
 
 <script>
 fetch('/api/bots').then(r=>r.json()).then(bots=>{
-  document.getElementById('link-pacientes').href = bots.pacientes;
   document.getElementById('link-cami').href = bots.cami;
   document.getElementById('link-hsb').href = bots.hsb;
   document.getElementById('link-examenes').href = bots.examenes;
   document.getElementById('link-cirugia').href = bots.cirugia;
   document.getElementById('link-formulacion').href = bots.formulacion;
+  document.getElementById('link-pacientes').href = bots.pacientes;
 });
 </script>
 </body>
