@@ -8,7 +8,9 @@ export default async function handler(req, res) {
   const URL_SHEETS = 'https://script.google.com/macros/s/AKfycbxSFsVfcXChORFlideOqNZfeKTRtVx_FmJqWPo6ThQtrPyz3YpU6UqZiLyNv0I8uK_OBg/exec';
 
   try {
-    const body = req.body;
+    let body = req.body;
+    if (typeof body === 'string') body = JSON.parse(body);
+
     const resp = await fetch(URL_SHEETS, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
@@ -20,3 +22,11 @@ export default async function handler(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+};
