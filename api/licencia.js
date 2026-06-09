@@ -1,21 +1,33 @@
+let cache = null;
+let cacheTime = null;
+
+function normalizarNombre(nombre) {
+  return nombre.trim().toUpperCase().split(/\s+/).sort().join(' ');
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   
-  const { email, bot } = req.query;
+  const { nombre, bot } = req.query;
   
-  if (!email || !bot) {
+  if (!nombre || !bot) {
     return res.status(400).json({ autorizado: false, mensaje: 'Faltan parámetros' });
   }
 
   const URL_SHEETS = 'https://script.google.com/macros/s/AKfycbxSFsVfcXChORFlideOqNZfeKTRtVx_FmJqWPo6ThQtrPyz3YpU6UqZiLyNv0I8uK_OBg/exec';
 
   try {
-    const data = await fetch(URL_SHEETS + '?sheet=Licencias').then(r => r.json());
-    
+    const ahora = Date.now();
+    if (!cache || !cacheTime || (ahora - cacheTime) > 3600000) {
+      const data = await fetch(URL_SHEETS + '?sheet=Licencias').then(r => r.json());
+      cache = data;
+      cacheTime = ahora;
+    }
+
     const hoy = new Date();
-    const usuario = data.find(u => 
-      u.email.toLowerCase().trim() === email.toLowerCase().trim()
-    );
+    const nombreBuscado = normalizarNombre(nombre);
+    
+    const usuario = cache.find(u => normalizarNombre(u.nombre) === nombreBuscado);
 
     if (!usuario) {
       return res.status(200).json({ autorizado: false, mensaje: 'Usuario no encontrado' });
