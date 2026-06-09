@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  const URL_SHEETS = 'https://script.google.com/macros/s/AKfycbxSFsVfcXChORFlideOqNZfeKTRtVx_FmJqWPo6ThQtrPyz3YpU6UqZiLyNv0I8uK_OBg/exec';
+  const URL_SHEETS = 'https://script.google.com/macros/s/AKfycbx9WdIXVCbsnlEpAH9LEn3c60dDFVpoWM9UK8JguPaHxNve17BfTVsoASO3QDYAtVw5/exec';
 
   try {
     let body = req.body;
