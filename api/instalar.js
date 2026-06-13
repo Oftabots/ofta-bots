@@ -96,7 +96,7 @@ fetch('/api/bots').then(r=>r.json()).then(bots=>{
   document.getElementById('link-cirugia').href = bots.cirugia;
   document.getElementById('link-formulacion').href = bots.formulacion;
 });
-document.getElementById('link-productividad').href = "${productividadHref}";
+document.getElementById('link-productividad').href = ${JSON.stringify(productividadHref)};
 </script>
 </body>
 </html>`);
