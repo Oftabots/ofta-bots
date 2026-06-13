@@ -1,3 +1,4 @@
+// refresh cache licencias
 let cache = null;
 let cacheTime = null;
 export default async function handler(req, res) {
