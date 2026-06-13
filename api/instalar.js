@@ -73,6 +73,18 @@ a { color: #0C447C; text-decoration: none; }
   </div>
 
   <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">🛠️</span>
+      <div><div class="bot-nombre"><a id="link-inicioprocedimientos" href="#">Inicio Procedimientos</a></div><div class="bot-desc">Abre folio HC095 y prepara Historia Clinica</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
+  </div>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">🛠️</span>
+      <div><div class="bot-nombre"><a id="link-procedimientos" href="#">Procedimientos</a></div><div class="bot-desc">Solicitud de procedimientos diagnosticos</div></div>
+    </div><span class="drag-hint">← Arrastra</span>
+  </div>
+
+  <div class="bot-link">
     <div class="bot-info"><span class="bot-emoji">📊</span>
       <div><div class="bot-nombre"><a id="link-productividad" href="#">Productividad</a></div><div class="bot-desc">Exportar listado de pacientes a Sheets</div></div>
     </div><span class="drag-hint">← Arrastra</span>
@@ -95,6 +107,8 @@ fetch('/api/bots').then(r=>r.json()).then(bots=>{
   document.getElementById('link-examenes').href = bots.examenes;
   document.getElementById('link-cirugia').href = bots.cirugia;
   document.getElementById('link-formulacion').href = bots.formulacion;
+  document.getElementById('link-inicioprocedimientos').href = bots.inicioprocedimientos;
+  document.getElementById('link-procedimientos').href = bots.procedimientos;
 });
 document.getElementById('link-productividad').href = ${JSON.stringify(productividadHref)};
 </script>
