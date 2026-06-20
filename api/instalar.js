@@ -1,7 +1,7 @@
 export default function handler(req, res) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
-  const productividadHref = "javascript:(async function(){async function validarLicencia(bot){const KEY='ofta_lic_'+bot;const KEY_T='oft_lic_t_'+bot;const ahora=Date.now();const guardado=sessionStorage.getItem(KEY);const tiempo=sessionStorage.getItem(KEY_T);if(guardado&&tiempo&&(ahora-parseInt(tiempo))<10800000)return JSON.parse(guardado);const nombre=document.querySelector('.content-text')?.textContent?.trim();if(!nombre)return{autorizado:false,mensaje:'No se detect\u00f3 usuario de Din\u00e1mica'};const r=await fetch('https://ofta-bots.vercel.app/api/licencia?nombre='+encodeURIComponent(nombre)+'&bot='+bot);const data=await r.json();sessionStorage.setItem(KEY,JSON.stringify(data));sessionStorage.setItem(KEY_T,String(ahora));return data;}const lic=await validarLicencia('pacientes');if(!lic.autorizado){alert('\u26d4 '+lic.mensaje);return;}const MESES={'01':'ENERO','02':'FEBRERO','03':'MARZO','04':'ABRIL','05':'MAYO','06':'JUNIO','07':'JULIO','08':'AGOSTO','09':'SEPTIEMBRE','10':'OCTUBRE','11':'NOVIEMBRE','12':'DICIEMBRE'};function leerFilasVisibles(registros,mesAnioRef){const filas=document.querySelectorAll('.dx-data-row');for(let i=0;i<filas.length;i++){const celdas=Array.from(filas[i].cells).filter(c=>c.getAttribute('role')==='gridcell');if(celdas.length<5)continue;try{const textoCita=celdas[1].querySelector('.divMultilinea')?.innerText?.trim()||'';const mFecha=textoCita.match(/(\\d{2})\\/(\\d{2})\\/(\\d{4})/);const fecha=mFecha?mFecha[1]+'/'+mFecha[2]+'/'+mFecha[3]:'';const mesNum=mFecha?mFecha[2]:'';const anio=mFecha?mFecha[3]:'';const mesAnioFila=(mesNum&&anio)?MESES[mesNum]+'/'+anio:'';if(mesAnioFila&&!mesAnioRef.val)mesAnioRef.val=mesAnioFila;const lineasCita=textoCita.split('\\n').map(l=>l.trim()).filter(Boolean);let tipoConsulta='OFTALMOLOGIA';for(const l of lineasCita){const lu=l.toUpperCase();if(lu.includes('OCULOPLASTICA')||lu.includes('OCULOPL\u00c1STICA')){tipoConsulta='OCULOPLASTICA';break;}if(lu.includes('OFTALMOLOGIA')||lu.includes('OFTALMOLOG\u00cdA')){tipoConsulta='OFTALMOLOGIA';break;}}const textoIngreso=celdas[3].querySelector('.divMultilinea')?.innerText?.trim()||'';const mFac=textoIngreso.match(/\\d{4,}/);const factura=mFac?mFac[0]:'NO ASISTIO';const textoPac=celdas[4].innerText?.trim()||'';const lineasPac=textoPac.split('\\n').map(l=>l.trim()).filter(Boolean);let numDoc='';let nombre='';for(const linea of lineasPac){if(/-\\s*\\d+/.test(linea)&&!/a\u00f1os/i.test(linea)){const m=linea.match(/-\\s*(\\d+)/);if(m)numDoc=m[1];}else if(linea===linea.toUpperCase()&&!/\\d/.test(linea)&&linea.length>4&&!/femenino|masculino/i.test(linea)){nombre=linea;}}const docKey=numDoc||nombre;if(docKey&&!registros.find(r=>r.documento===numDoc&&r.nombre===nombre)){registros.push({fecha,nombre,documento:numDoc,factura,tipoConsulta,procedimientoQX:'NO APLICA',mesAnio:mesAnioFila});}}catch(e){console.warn('Error fila '+i+': '+e.message);}}}const registros=[];const mesAnioRef={val:''};const contenedor=document.querySelector('.dx-datagrid-rowsview .dx-scrollable-container');if(contenedor){contenedor.scrollTop=0;await new Promise(r=>setTimeout(r,800));leerFilasVisibles(registros,mesAnioRef);let ultimaAltura=-1;while(contenedor.scrollTop!==ultimaAltura){ultimaAltura=contenedor.scrollTop;contenedor.scrollTop+=300;await new Promise(r=>setTimeout(r,1200));leerFilasVisibles(registros,mesAnioRef);}leerFilasVisibles(registros,mesAnioRef);}else{leerFilasVisibles(registros,mesAnioRef);}if(registros.length===0){alert('No se extrajeron registros.');return;}try{const resp=await fetch('https://ofta-bots.vercel.app/api/pacientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mesAnio:mesAnioRef.val,registros})});const data=await resp.json();if(data.resultado&&data.resultado.includes('OK')){alert('OK: '+registros.length+' registros guardados. Mes: '+mesAnioRef.val);}else{alert('Respuesta: '+data.resultado);}}catch(e){alert('Error: '+e.message);}})();void(0);";
+  const productividadHref = "javascript:(async function(){async function validarLicencia(bot){const KEY='ofta_lic_'+bot;const KEY_T='oft_lic_t_'+bot;const ahora=Date.now();const guardado=sessionStorage.getItem(KEY);const tiempo=sessionStorage.getItem(KEY_T);if(guardado&&tiempo&&(ahora-parseInt(tiempo))<10800000)return JSON.parse(guardado);const nombre=document.querySelector('.content-text')?.textContent?.trim();if(!nombre)return{autorizado:false,mensaje:'No se detect\u00f3 usuario de Din\u00e1mica'};const r=await fetch('https://ofta-bots.vercel.app/api/licencia?nombre='+encodeURIComponent(nombre)+'&bot='+bot);const data=await r.json();sessionStorage.setItem(KEY,JSON.stringify(data));sessionStorage.setItem(KEY_T,String(ahora));return data;}const lic=await validarLicencia('pacientes');if(!lic.autorizado){alert('\u26d4 '+lic.mensaje);return;}const MESES={'01':'ENERO','02':'FEBRERO','03':'MARZO','04':'ABRIL','05':'MAYO','06':'JUNIO','07':'JULIO','08':'AGOSTO','09':'SEPTIEMBRE','10':'OCTUBRE','11':'NOVIEMBRE','12':'DICIEMBRE'};function leerFilasVisibles(registros,mesAnioRef){const filas=document.querySelectorAll('.dx-data-row');for(let i=0;i<filas.length;i++){const celdas=Array.from(filas[i].cells).filter(c=>c.getAttribute('role')==='gridcell');if(celdas.length<5)continue;try{const textoCita=celdas[1].querySelector('.divMultilinea')?.innerText?.trim()||'';const mFecha=textoCita.match(/(\d{2})\/(\d{2})\/(\d{4})/);const fecha=mFecha?mFecha[1]+'/'+mFecha[2]+'/'+mFecha[3]:'';const mesNum=mFecha?mFecha[2]:'';const anio=mFecha?mFecha[3]:'';const mesAnioFila=(mesNum&&anio)?MESES[mesNum]+'/'+anio:'';if(mesAnioFila&&!mesAnioRef.val)mesAnioRef.val=mesAnioFila;const lineasCita=textoCita.split('\n').map(l=>l.trim()).filter(Boolean);let tipoConsulta='OFTALMOLOGIA';for(const l of lineasCita){const lu=l.toUpperCase();if(lu.includes('OCULOPLASTICA')||lu.includes('OCULOPL\u00c1STICA')){tipoConsulta='OCULOPLASTICA';break;}if(lu.includes('OFTALMOLOGIA')||lu.includes('OFTALMOLOG\u00cdA')){tipoConsulta='OFTALMOLOGIA';break;}}const textoIngreso=celdas[3].querySelector('.divMultilinea')?.innerText?.trim()||'';const mFac=textoIngreso.match(/\d{4,}/);const factura=mFac?mFac[0]:'NO ASISTIO';const textoPac=celdas[4].innerText?.trim()||'';const lineasPac=textoPac.split('\n').map(l=>l.trim()).filter(Boolean);let numDoc='';let nombre='';for(const linea of lineasPac){if(/-\s*\d+/.test(linea)&&!/a\u00f1os/i.test(linea)){const m=linea.match(/-\s*(\d+)/);if(m)numDoc=m[1];}else if(linea===linea.toUpperCase()&&!/\d/.test(linea)&&linea.length>4&&!/femenino|masculino/i.test(linea)){nombre=linea;}}const docKey=numDoc||nombre;if(docKey&&!registros.find(r=>r.documento===numDoc&&r.nombre===nombre)){registros.push({fecha,nombre,documento:numDoc,factura,tipoConsulta,procedimientoQX:'NO APLICA',mesAnio:mesAnioFila});}}catch(e){console.warn('Error fila '+i+': '+e.message);}}}const registros=[];const mesAnioRef={val:''};const contenedor=document.querySelector('.dx-datagrid-rowsview .dx-scrollable-container');if(contenedor){contenedor.scrollTop=0;await new Promise(r=>setTimeout(r,800));leerFilasVisibles(registros,mesAnioRef);let ultimaAltura=-1;while(contenedor.scrollTop!==ultimaAltura){ultimaAltura=contenedor.scrollTop;contenedor.scrollTop+=300;await new Promise(r=>setTimeout(r,1200));leerFilasVisibles(registros,mesAnioRef);}leerFilasVisibles(registros,mesAnioRef);}else{leerFilasVisibles(registros,mesAnioRef);}if(registros.length===0){alert('No se extrajeron registros.');return;}try{const resp=await fetch('https://ofta-bots.vercel.app/api/pacientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mesAnio:mesAnioRef.val,registros})});const data=await resp.json();if(data.resultado&&data.resultado.includes('OK')){alert('OK: '+registros.length+' registros guardados. Mes: '+mesAnioRef.val);}else{alert('Respuesta: '+data.resultado);}}catch(e){alert('Error: '+e.message);}})();void(0);";
 
   res.status(200).send(`<!DOCTYPE html>
 <html lang="es">
@@ -34,65 +34,59 @@ a { color: #0C447C; text-decoration: none; }
 </style>
 </head>
 <body>
-<div class="logo">🤖</div>
+<div class="logo">\u{1f916}</div>
 <h1>Oftabots</h1>
 <p class="sub">Instala tus bots en la barra de marcadores</p>
 
 <div class="card">
-  <div class="card-header"><span>🚀</span><h2>Tus Bots</h2></div>
+  <div class="card-header"><span>\u{1f680}</span><h2>Tus Bots</h2></div>
   <p class="instruccion">Arrastra cada bot a tu barra de marcadores:</p>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">📋</span>
+    <div class="bot-info"><span class="bot-emoji">\u{1f4cb}</span>
       <div><div class="bot-nombre"><a id="link-historia" href="#">Historia</a></div><div class="bot-desc">Abre historia clinica en cualquier sede</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">📝</span>
-      <div><div class="bot-nombre"><a id="link-notas" href="#">Notas</a></div><div class="bot-desc">Historia Clinica Oftalmologica</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
-  </div>
-
-  <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">🔬</span>
+    <div class="bot-info"><span class="bot-emoji">\u{1f52c}</span>
       <div><div class="bot-nombre"><a id="link-examenes" href="#">Examenes</a></div><div class="bot-desc">Solicitud de examenes</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">🔪</span>
+    <div class="bot-info"><span class="bot-emoji">\u{1f52a}</span>
       <div><div class="bot-nombre"><a id="link-cirugia" href="#">Cirugia</a></div><div class="bot-desc">Prequirurgicos y consentimiento</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">💊</span>
+    <div class="bot-info"><span class="bot-emoji">\u{1f48a}</span>
       <div><div class="bot-nombre"><a id="link-formulacion" href="#">Formulacion</a></div><div class="bot-desc">Formula medica oftalmologica</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">🛠️</span>
+    <div class="bot-info"><span class="bot-emoji">\u{1f6e0}\ufe0f</span>
       <div><div class="bot-nombre"><a id="link-inicioprocedimientos" href="#">Inicio Procedimientos</a></div><div class="bot-desc">Abre folio HC095 y prepara Historia Clinica</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">🛠️</span>
+    <div class="bot-info"><span class="bot-emoji">\u{1f6e0}\ufe0f</span>
       <div><div class="bot-nombre"><a id="link-procedimientos" href="#">Procedimientos</a></div><div class="bot-desc">Solicitud de procedimientos diagnosticos</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
 
   <div class="bot-link">
-    <div class="bot-info"><span class="bot-emoji">📊</span>
+    <div class="bot-info"><span class="bot-emoji">\u{1f4ca}</span>
       <div><div class="bot-nombre"><a id="link-productividad" href="#">Productividad</a></div><div class="bot-desc">Exportar listado de pacientes a Sheets</div></div>
-    </div><span class="drag-hint">← Arrastra</span>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header"><span>📋</span><h2>Instrucciones</h2></div>
+  <div class="card-header"><span>\u{1f4cb}</span><h2>Instrucciones</h2></div>
   <div class="step"><div class="step-num">1</div><div class="step-txt">Asegurate de tener visible la <strong>barra de marcadores</strong> en Chrome (Ctrl + Shift + B)</div></div>
   <div class="step"><div class="step-num">2</div><div class="step-txt">Arrastra cada bot desde aqui hasta la barra de marcadores</div></div>
   <div class="step"><div class="step-num">3</div><div class="step-txt">Usalos directamente desde Dinamica</div></div>
@@ -103,7 +97,6 @@ a { color: #0C447C; text-decoration: none; }
 <script>
 fetch('/api/bots').then(r=>r.json()).then(bots=>{
   document.getElementById('link-historia').href = bots.historia;
-  document.getElementById('link-notas').href = bots.notas;
   document.getElementById('link-examenes').href = bots.examenes;
   document.getElementById('link-cirugia').href = bots.cirugia;
   document.getElementById('link-formulacion').href = bots.formulacion;
