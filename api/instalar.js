@@ -49,6 +49,12 @@ a { color: #0C447C; text-decoration: none; }
   </div>
 
   <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">\u{1f4dd}</span>
+      <div><div class="bot-nombre"><a id="link-notas" href="#">Notas</a></div><div class="bot-desc">Historia Clinica Oftalmologica</div></div>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
+  </div>
+
+  <div class="bot-link">
     <div class="bot-info"><span class="bot-emoji">\u{1f52c}</span>
       <div><div class="bot-nombre"><a id="link-examenes" href="#">Examenes</a></div><div class="bot-desc">Solicitud de examenes</div></div>
     </div><span class="drag-hint">\u2190 Arrastra</span>
@@ -97,6 +103,7 @@ a { color: #0C447C; text-decoration: none; }
 <script>
 fetch('/api/bots').then(r=>r.json()).then(bots=>{
   document.getElementById('link-historia').href = bots.historia;
+  document.getElementById('link-notas').href = bots.notas;
   document.getElementById('link-examenes').href = bots.examenes;
   document.getElementById('link-cirugia').href = bots.cirugia;
   document.getElementById('link-formulacion').href = bots.formulacion;
