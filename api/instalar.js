@@ -91,6 +91,12 @@ a { color: #0C447C; text-decoration: none; }
       <div><div class="bot-nombre"><a id="link-productividad" href="#">Productividad</a></div><div class="bot-desc">Exportar listado de pacientes a Sheets</div></div>
     </div><span class="drag-hint">\u2190 Arrastra</span>
   </div>
+
+  <div class="bot-link">
+    <div class="bot-info"><span class="bot-emoji">\u{1f4c4}</span>
+      <div><div class="bot-nombre"><a id="link-reportecitas" href="#">Reporte Citas</a></div><div class="bot-desc">Login + reporte de citas asignadas por profesional</div></div>
+    </div><span class="drag-hint">\u2190 Arrastra</span>
+  </div>
 </div>
 
 <div class="card">
@@ -110,6 +116,7 @@ fetch('/api/bots').then(r=>r.json()).then(bots=>{
   document.getElementById('link-formulacion').href = bots.formulacion;
   document.getElementById('link-inicioprocedimientos').href = bots.inicioprocedimientos;
   document.getElementById('link-procedimientos').href = bots.procedimientos;
+  document.getElementById('link-reportecitas').href = bots.reporteCitas;
 });
 document.getElementById('link-notas').href = ${JSON.stringify(notasHref)};
 document.getElementById('link-productividad').href = ${JSON.stringify(productividadHref)};
