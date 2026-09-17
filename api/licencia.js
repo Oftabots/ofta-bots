@@ -1,5 +1,9 @@
-let cache = null;
-let cacheTime = null;
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 function normalizarNombre(nombre) {
   return nombre.trim().toUpperCase().split(/\s+/).sort().join(' ');
@@ -7,36 +11,34 @@ function normalizarNombre(nombre) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  
+
   const { nombre, bot } = req.query;
-  
+
   if (!nombre || !bot) {
     return res.status(400).json({ autorizado: false, mensaje: 'Faltan parámetros' });
   }
 
-  const URL_SHEETS = 'https://script.google.com/macros/s/AKfycbxSFsVfcXChORFlideOqNZfeKTRtVx_FmJqWPo6ThQtrPyz3YpU6UqZiLyNv0I8uK_OBg/exec';
-
   try {
-    const ahora = Date.now();
-    if (!cache || !cacheTime || (ahora - cacheTime) > 3600000) {
-      const data = await fetch(URL_SHEETS + '?sheet=Licencias').then(r => r.json());
-      cache = data;
-      cacheTime = ahora;
-    }
-
-    const hoy = new Date();
     const nombreBuscado = normalizarNombre(nombre);
-    
-    const usuario = cache.find(u => normalizarNombre(u.nombre) === nombreBuscado);
+
+    const { data: usuario, error } = await supabase
+      .schema('oftabots')
+      .from('licencias')
+      .select('*')
+      .eq('nombre_normalizado', nombreBuscado)
+      .maybeSingle();
+
+    if (error) throw error;
 
     if (!usuario) {
       return res.status(200).json({ autorizado: false, mensaje: 'Usuario no encontrado' });
     }
 
-    if (usuario.activo.toString().toLowerCase() !== 'true') {
+    if (!usuario.activo) {
       return res.status(200).json({ autorizado: false, mensaje: 'Licencia inactiva' });
     }
 
+    const hoy = new Date();
     const vencimiento = new Date(usuario.vencimiento);
     if (hoy > vencimiento) {
       return res.status(200).json({ autorizado: false, mensaje: 'Licencia vencida' });
@@ -50,6 +52,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ autorizado: true, nombre: usuario.nombre });
 
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ autorizado: false, mensaje: 'Error del servidor' });
   }
 }
