@@ -1,24 +1,24 @@
-let cache = null;
-let cacheTime = null;
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const URL_SHEETS = 'https://script.google.com/macros/s/AKfycbxSFsVfcXChORFlideOqNZfeKTRtVx_FmJqWPo6ThQtrPyz3YpU6UqZiLyNv0I8uK_OBg/exec';
-
   try {
-    const ahora = Date.now();
-    if (!cache || !cacheTime || (ahora - cacheTime) > 3600000) {
-      const data = await fetch(URL_SHEETS + '?sheet=Cirugias').then(r => r.json());
-      cache = data;
-      cacheTime = ahora;
-    }
-    res.status(200).json(cache);
+    const { data, error } = await supabase
+      .schema('oftabots')
+      .from('cirugias')
+      .select('cups, nombre, obs, riesgos, beneficios, alternativa');
+
+    if (error) throw error;
+
+    return res.status(200).json(data);
   } catch (error) {
-    if (cache) {
-      res.status(200).json(cache);
-    } else {
-      res.status(500).json({ error: error.message });
-    }
+    console.error(error);
+    return res.status(500).json({ error: error.message });
   }
 }
