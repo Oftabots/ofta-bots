@@ -1,12 +1,31 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  const URL_SHEETS = 'https://script.google.com/macros/s/AKfycbxSFsVfcXChORFlideOqNZfeKTRtVx_FmJqWPo6ThQtrPyz3YpU6UqZiLyNv0I8uK_OBg/exec';
-  
+
   try {
-    const data = await fetch(URL_SHEETS + '?sheet=FormulaMedica').then(r => r.json());
-    res.status(200).json(data);
+    const { data, error } = await supabase
+      .schema('oftabots')
+      .from('formula_medica')
+      .select('nombre, principio_activo, presentacion, dosificacion');
+
+    if (error) throw error;
+
+    const formateado = data.map(item => ({
+      nombre: item.nombre,
+      principioActivo: item.principio_activo,
+      presentacion: item.presentacion,
+      dosificacion: item.dosificacion
+    }));
+
+    return res.status(200).json(formateado);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ error: error.message });
   }
 }
