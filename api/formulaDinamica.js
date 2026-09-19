@@ -1,22 +1,24 @@
-let cache = null;
-let cacheTime = 0;
-const CACHE_TTL = 3600000;
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  const ahora = Date.now();
-  if (cache && (ahora - cacheTime) < CACHE_TTL) {
-    return res.status(200).json(cache);
-  }
+
   try {
-    const url = 'https://script.google.com/macros/s/AKfycbxSFsVfcXChORFlideOqNZfeKTRtVx_FmJqWPo6ThQtrPyz3YpU6UqZiLyNv0I8uK_OBg/exec?sheet=FormulaDinamica';
-    const resp = await fetch(url);
-    const data = await resp.json();
-    cache = data;
-    cacheTime = ahora;
+    const { data, error } = await supabase
+      .schema('oftabots')
+      .from('formula_dinamica')
+      .select('nombre, codigo, via, indicacion, dosis, frecuencia, duracion, cantidad');
+
+    if (error) throw error;
+
     return res.status(200).json(data);
-  } catch (e) {
-    if (cache) return res.status(200).json(cache);
-    return res.status(500).json({ error: e.message });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
   }
 }
