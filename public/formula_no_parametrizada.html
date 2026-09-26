@@ -54,7 +54,7 @@
 
   function cerrarSesion(){
     localStorage.removeItem(AUTH_KEY);
-    location.reload();
+    window.location.href = 'menu_contingencia.html';
   }
 
   function mostrarOverlay(){
@@ -204,7 +204,7 @@
 </style>
 </head>
 <body>
-<div class="toolbar"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
+<div class="toolbar"><a href="menu_contingencia.html" style="margin-right:14px;color:#1a73e8;text-decoration:none;font-size:13px;">← Menú</a><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
 <div class="hoja">
 
   <div class="top">
@@ -267,8 +267,12 @@
   <div class="indicaciones">
     <div class="cab">INDICACIONES A PACIENTE</div>
     <div class="body">
+      <div style="margin-bottom:6px;">
+        <b>Buscar medicamento:</b>
+        <div class="campo" contenteditable="true" id="med_libre_buscar" data-ph="Escribe para buscar..." style="border:1px solid #cdd7e5;border-radius:5px;padding:4px 6px;margin-top:3px;min-height:1.2em;"></div>
+      </div>
       <b>Indicación:</b>
-      <textarea placeholder="1. Medicamento, concentración, presentación, cantidad&#10;   Posología, vía de administración, duración"></textarea>
+      <textarea id="indicaciones_texto" placeholder="1. Medicamento, concentración, presentación, cantidad&#10;   Posología, vía de administración, duración"></textarea>
     </div>
   </div>
 
@@ -456,4 +460,118 @@ document.getElementById('fecha-actual').textContent =
 </script>
 
 <script>activarCie10('diagnostico');</script>
+
+<style>
+  .medl-wrap { position:relative; display:inline-block; width:100%; }
+  .medl-lista {
+    display:none; position:absolute; top:100%; left:0; background:#fff; border:1px solid #cdd7e5;
+    border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,.15); max-height:220px; overflow-y:auto;
+    z-index:5000; width:420px; max-width:90vw; font-family:Arial, sans-serif;
+  }
+  .medl-lista.abierta { display:block; }
+  .medl-item { padding:6px 10px; font-size:12px; cursor:pointer; border-bottom:1px solid #f0f0f0; }
+  .medl-item:hover { background:#eaf3ff; }
+  .medl-item b { color:#B5541F; }
+</style>
+<script>
+(function(){
+  var MEDL_URL = 'https://ofta-bots.vercel.app/api/formulacion';
+  var MEDL_CACHE_KEY = 'medicamentos_libres_v1';
+  var medlDatos = null;
+
+  function normalizarMedl(txt){
+    return (txt||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function cargarMedl(){
+    return new Promise(function(resolve){
+      if(medlDatos){ resolve(medlDatos); return; }
+      var cache = localStorage.getItem(MEDL_CACHE_KEY);
+      if(cache){
+        try { medlDatos = JSON.parse(cache); resolve(medlDatos); return; } catch(e){}
+      }
+      fetch(MEDL_URL).then(function(r){ return r.json(); }).then(function(data){
+        medlDatos = data;
+        try { localStorage.setItem(MEDL_CACHE_KEY, JSON.stringify(data)); } catch(e){}
+        resolve(data);
+      }).catch(function(){ resolve(medlDatos); });
+    });
+  }
+
+  function buscarMedl(termino){
+    if(!medlDatos || !termino || termino.length < 2) return [];
+    var t = normalizarMedl(termino);
+    var resultados = [];
+    for(var i=0; i<medlDatos.length && resultados.length < 15; i++){
+      var it = medlDatos[i];
+      if(normalizarMedl(it.nombre).indexOf(t) !== -1 || normalizarMedl(it.principioActivo).indexOf(t) !== -1){
+        resultados.push(it);
+      }
+    }
+    return resultados;
+  }
+
+  window.activarMedLibre = function(idBuscar, idTextarea){
+    var campo = document.getElementById(idBuscar);
+    var textarea = document.getElementById(idTextarea);
+    if(!campo || !textarea) return;
+
+    var wrap = document.createElement('span');
+    wrap.className = 'medl-wrap';
+    campo.parentNode.insertBefore(wrap, campo);
+    wrap.appendChild(campo);
+
+    var lista = document.createElement('div');
+    lista.className = 'medl-lista';
+    wrap.appendChild(lista);
+
+    var timer = null;
+
+    function contarItems(){
+      var m = textarea.value.match(/^\d+\./gm);
+      return m ? m.length : 0;
+    }
+
+    function render(resultados){
+      lista.innerHTML = '';
+      if(!resultados.length){ lista.classList.remove('abierta'); return; }
+      resultados.forEach(function(it){
+        var div = document.createElement('div');
+        div.className = 'medl-item';
+        div.innerHTML = '<b>' + it.nombre + '</b> &mdash; ' + (it.principioActivo||'') + ' &middot; ' + (it.presentacion||'');
+        div.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          var n = contarItems() + 1;
+          var linea = n + '. ' + it.nombre + ' (' + (it.principioActivo||'') + ') - ' + (it.presentacion||'') +
+                      '\n   ' + (it.dosificacion||'') + '\n\n';
+          textarea.value = (textarea.value ? textarea.value + '\n' : '') + linea;
+          campo.textContent = '';
+          lista.classList.remove('abierta');
+          textarea.focus();
+        });
+        lista.appendChild(div);
+      });
+      lista.classList.add('abierta');
+    }
+
+    function onInput(){
+      clearTimeout(timer);
+      var valor = campo.textContent;
+      timer = setTimeout(function(){
+        cargarMedl().then(function(){ render(buscarMedl(valor)); });
+      }, 150);
+    }
+
+    campo.addEventListener('input', onInput);
+    campo.addEventListener('focus', function(){ cargarMedl(); });
+    document.addEventListener('click', function(e){
+      if(!wrap.contains(e.target)) lista.classList.remove('abierta');
+    });
+  };
+
+  cargarMedl();
+})();
+</script>
+
+<script>activarMedLibre('med_libre_buscar', 'indicaciones_texto');</script>
 </body></html>

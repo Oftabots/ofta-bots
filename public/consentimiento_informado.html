@@ -54,7 +54,7 @@
 
   function cerrarSesion(){
     localStorage.removeItem(AUTH_KEY);
-    location.reload();
+    window.location.href = 'menu_contingencia.html';
   }
 
   function mostrarOverlay(){
@@ -191,7 +191,7 @@
 </style>
 </head>
 <body>
-<div class="toolbar"><button onclick="window.print()">Imprimir / Guardar PDF (ambas páginas)</button></div>
+<div class="toolbar"><a href="menu_contingencia.html" style="margin-right:14px;color:#1a73e8;text-decoration:none;font-size:13px;">← Menú</a><button onclick="window.print()">Imprimir / Guardar PDF (ambas páginas)</button></div>
 
 <div class="hoja">
   

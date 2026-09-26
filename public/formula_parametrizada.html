@@ -54,7 +54,7 @@
 
   function cerrarSesion(){
     localStorage.removeItem(AUTH_KEY);
-    location.reload();
+    window.location.href = 'menu_contingencia.html';
   }
 
   function mostrarOverlay(){
@@ -204,7 +204,7 @@
 </style>
 </head>
 <body>
-<div class="toolbar"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
+<div class="toolbar"><a href="menu_contingencia.html" style="margin-right:14px;color:#1a73e8;text-decoration:none;font-size:13px;">← Menú</a><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
 <div class="hoja">
 
   <div class="top">
@@ -283,16 +283,16 @@
       <th>Dosis</th><th>Frecuencia</th><th>Duración</th><th>Cantidad</th>
     </tr>
     <tr>
-      <td><div class="campo" contenteditable="true"></div></td>
-      <td><div class="campo" contenteditable="true" data-ph="Nombre del medicamento"></div></td>
-      <td><div class="campo" contenteditable="true"></div></td>
-      <td><div class="campo" contenteditable="true"></div></td>
-      <td><div class="campo" contenteditable="true"></div></td>
-      <td><div class="campo" contenteditable="true"></div></td>
-      <td><div class="campo" contenteditable="true"></div></td>
+      <td><div class="campo" contenteditable="true" id="med_cod"></div></td>
+      <td><div class="campo" contenteditable="true" id="med_nombre" data-ph="Busca el medicamento..."></div></td>
+      <td><div class="campo" contenteditable="true" id="med_via"></div></td>
+      <td><div class="campo" contenteditable="true" id="med_dosis"></div></td>
+      <td><div class="campo" contenteditable="true" id="med_frec"></div></td>
+      <td><div class="campo" contenteditable="true" id="med_dura"></div></td>
+      <td><div class="campo" contenteditable="true" id="med_cant"></div></td>
     </tr>
   </table>
-  <div class="obs-libre"><b>Indicación:</b> <div class="campo" contenteditable="true" style="display:inline-block;width:85%;" data-ph="Indicación de uso al paciente"></div></div>
+  <div class="obs-libre"><b>Indicación:</b> <div class="campo" contenteditable="true" id="med_indicacion" style="display:inline-block;width:85%;" data-ph="Indicación de uso al paciente"></div></div>
 
   <div class="dashed"></div>
   <div class="total-items"><span class="lbl">Total Items:</span> <input value="1"></div>
@@ -479,4 +479,114 @@ document.getElementById('fecha-actual').textContent =
 </script>
 
 <script>activarCie10('diagnostico', {cod:'diag_cod', nom:'diag_nom'});</script>
+
+<style>
+  .med-wrap { position:relative; display:inline-block; width:100%; }
+  .med-lista {
+    display:none; position:absolute; top:100%; left:0; background:#fff; border:1px solid #cdd7e5;
+    border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,.15); max-height:220px; overflow-y:auto;
+    z-index:5000; width:420px; max-width:90vw; font-family:Arial, sans-serif;
+  }
+  .med-lista.abierta { display:block; }
+  .med-item { padding:6px 10px; font-size:12px; cursor:pointer; border-bottom:1px solid #f0f0f0; }
+  .med-item:hover { background:#eaf3ff; }
+  .med-item b { color:#0C447C; }
+</style>
+<script>
+(function(){
+  var MED_URL = 'https://ofta-bots.vercel.app/api/formulaDinamica';
+  var MED_CACHE_KEY = 'medicamentos_param_v1';
+  var medDatos = null;
+
+  function normalizarMed(txt){
+    return (txt||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function cargarMed(){
+    return new Promise(function(resolve){
+      if(medDatos){ resolve(medDatos); return; }
+      var cache = localStorage.getItem(MED_CACHE_KEY);
+      if(cache){
+        try { medDatos = JSON.parse(cache); resolve(medDatos); return; } catch(e){}
+      }
+      fetch(MED_URL).then(function(r){ return r.json(); }).then(function(data){
+        medDatos = data;
+        try { localStorage.setItem(MED_CACHE_KEY, JSON.stringify(data)); } catch(e){}
+        resolve(data);
+      }).catch(function(){ resolve(medDatos); });
+    });
+  }
+
+  function buscarMed(termino){
+    if(!medDatos || !termino || termino.length < 2) return [];
+    var t = normalizarMed(termino);
+    var resultados = [];
+    for(var i=0; i<medDatos.length && resultados.length < 15; i++){
+      var it = medDatos[i];
+      if(normalizarMed(it.nombre).indexOf(t) !== -1 || normalizarMed(it.codigo).indexOf(t) === 0){
+        resultados.push(it);
+      }
+    }
+    return resultados;
+  }
+
+  // idNombre: campo del nombre del medicamento. ids: {cod,via,dosis,frec,dura,cant,indicacion} opcionales.
+  window.activarMedParam = function(idNombre, ids){
+    var campo = document.getElementById(idNombre);
+    if(!campo) return;
+
+    var wrap = document.createElement('span');
+    wrap.className = 'med-wrap';
+    campo.parentNode.insertBefore(wrap, campo);
+    wrap.appendChild(campo);
+
+    var lista = document.createElement('div');
+    lista.className = 'med-lista';
+    wrap.appendChild(lista);
+
+    var timer = null;
+
+    function render(resultados){
+      lista.innerHTML = '';
+      if(!resultados.length){ lista.classList.remove('abierta'); return; }
+      resultados.forEach(function(it){
+        var div = document.createElement('div');
+        div.className = 'med-item';
+        div.innerHTML = '<b>' + (it.codigo||'') + '</b> &mdash; ' + it.nombre;
+        div.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          campo.textContent = it.nombre;
+          if(ids){
+            var mapa = {cod:it.codigo, via:it.via, dosis:it.dosis, frec:it.frecuencia, dura:it.duracion, cant:it.cantidad, indicacion:it.indicacion};
+            Object.keys(mapa).forEach(function(k){
+              if(ids[k]){ var el = document.getElementById(ids[k]); if(el && mapa[k] !== undefined) el.textContent = mapa[k]; }
+            });
+          }
+          lista.classList.remove('abierta');
+        });
+        lista.appendChild(div);
+      });
+      lista.classList.add('abierta');
+    }
+
+    function onInput(){
+      clearTimeout(timer);
+      var valor = campo.textContent;
+      timer = setTimeout(function(){
+        cargarMed().then(function(){ render(buscarMed(valor)); });
+      }, 150);
+    }
+
+    campo.addEventListener('input', onInput);
+    campo.addEventListener('focus', function(){ cargarMed(); });
+    document.addEventListener('click', function(e){
+      if(!wrap.contains(e.target)) lista.classList.remove('abierta');
+    });
+  };
+
+  cargarMed();
+})();
+</script>
+
+<script>activarMedParam('med_nombre', {cod:'med_cod', via:'med_via', dosis:'med_dosis', frec:'med_frec', dura:'med_dura', cant:'med_cant', indicacion:'med_indicacion'});</script>
 </body></html>
