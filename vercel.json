@@ -1,6 +1,8 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/instalar", "dest": "/public/instalar.html" }
+    { "src": "/instalar", "dest": "/public/instalar.html" },
+    { "src": "/contingencia", "dest": "/public/portada.html" },
+    { "src": "/contingencia/menu", "dest": "/public/menu_contingencia.html" }
   ]
 }
