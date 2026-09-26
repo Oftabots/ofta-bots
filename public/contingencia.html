@@ -192,6 +192,13 @@ function calcularEdad(fechaStr){
   return anios + ' Años / ' + meses + ' Meses / ' + dias + ' Días';
 }
 
+function formatearFechaDDMMAAAA(fechaISO){
+  if(!fechaISO) return '';
+  var partes = fechaISO.split('-'); // AAAA-MM-DD
+  if(partes.length !== 3) return fechaISO;
+  return partes[2] + '/' + partes[1] + '/' + partes[0];
+}
+
 var $cedula = document.getElementById('cedula');
 var $apellidos = document.getElementById('apellidos');
 var $nombres = document.getElementById('nombres');
@@ -224,7 +231,7 @@ $btn.addEventListener('click', function(){
     apellidos: apellidos,
     nombres: nombres,
     nombre: (apellidos + ' ' + nombres).trim(),
-    fecha_nacimiento: $fecha.value,
+    fecha_nacimiento: formatearFechaDDMMAAAA($fecha.value),
     edad_calculada: calcularEdad($fecha.value),
     aseguradora: aseguradora
   };
