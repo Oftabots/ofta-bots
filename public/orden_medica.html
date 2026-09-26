@@ -561,4 +561,124 @@ document.getElementById('fecha-actual').textContent =
 })();
 </script>
 
+
+<style>
+  .ex-wrap { position:relative; display:inline-block; width:100%; }
+  .ex-lista {
+    display:none; position:absolute; top:100%; left:0; background:#fff; border:1px solid #cdd7e5;
+    border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,.15); max-height:220px; overflow-y:auto;
+    z-index:5000; width:420px; max-width:90vw; font-family:Arial, sans-serif;
+  }
+  .ex-lista.abierta { display:block; }
+  .ex-item { padding:6px 10px; font-size:12px; cursor:pointer; border-bottom:1px solid #f0f0f0; }
+  .ex-item:hover { background:#eaf3ff; }
+  .ex-item b { color:#0C447C; }
+  .ex-item .tag { font-size:9px; color:#999; margin-left:4px; }
+</style>
+<script>
+(function(){
+  var EX_URL = 'https://ofta-bots.vercel.app/api/examenes';
+  var PROC_URL = 'https://ofta-bots.vercel.app/api/procedimientos';
+  var EX_CACHE_KEY = 'examenes_procedimientos_v1';
+  var exDatos = null;
+
+  function normalizarEx(txt){
+    return (txt||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function cargarEx(){
+    return new Promise(function(resolve){
+      if(exDatos){ resolve(exDatos); return; }
+      var cache = localStorage.getItem(EX_CACHE_KEY);
+      if(cache){
+        try { exDatos = JSON.parse(cache); resolve(exDatos); return; } catch(e){}
+      }
+      Promise.all([
+        fetch(EX_URL).then(function(r){ return r.json(); }).catch(function(){ return {generales:[],oftalmo:[]}; }),
+        fetch(PROC_URL).then(function(r){ return r.json(); }).catch(function(){ return []; })
+      ]).then(function(res){
+        var examenes = res[0] || {generales:[],oftalmo:[]};
+        var procedimientos = res[1] || [];
+        var combinado = [];
+        (examenes.generales||[]).forEach(function(e){ combinado.push({cups:e.cups, nombre:e.nombre, tag:'Examen'}); });
+        (examenes.oftalmo||[]).forEach(function(e){ combinado.push({cups:e.cups, nombre:e.nombre, tag:'Examen oftalmo'}); });
+        procedimientos.forEach(function(p){ combinado.push({cups:p.cups, nombre:p.nombre, tag:'Procedimiento'}); });
+        exDatos = combinado;
+        try { localStorage.setItem(EX_CACHE_KEY, JSON.stringify(combinado)); } catch(e){}
+        resolve(combinado);
+      });
+    });
+  }
+
+  function buscarEx(termino){
+    if(!exDatos || !termino || termino.length < 2) return [];
+    var t = normalizarEx(termino);
+    var resultados = [];
+    for(var i=0; i<exDatos.length && resultados.length < 15; i++){
+      var it = exDatos[i];
+      if(normalizarEx(it.nombre).indexOf(t) !== -1 || normalizarEx(it.cups).indexOf(t) === 0){
+        resultados.push(it);
+      }
+    }
+    return resultados;
+  }
+
+  // idDesc: campo de descripci\u00f3n del examen/procedimiento. idCod: campo de c\u00f3digo (opcional).
+  window.activarExamen = function(idDesc, idCod){
+    var campo = document.getElementById(idDesc);
+    if(!campo) return;
+
+    var wrap = document.createElement('span');
+    wrap.className = 'ex-wrap';
+    campo.parentNode.insertBefore(wrap, campo);
+    wrap.appendChild(campo);
+
+    var lista = document.createElement('div');
+    lista.className = 'ex-lista';
+    wrap.appendChild(lista);
+
+    var timer = null;
+
+    function render(resultados){
+      lista.innerHTML = '';
+      if(!resultados.length){ lista.classList.remove('abierta'); return; }
+      resultados.forEach(function(it){
+        var div = document.createElement('div');
+        div.className = 'ex-item';
+        div.innerHTML = '<b>' + (it.cups||'') + '</b> &mdash; ' + it.nombre + '<span class="tag">' + it.tag + '</span>';
+        div.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          campo.textContent = it.nombre;
+          if(idCod){ var elC = document.getElementById(idCod); if(elC) elC.textContent = it.cups || ''; }
+          lista.classList.remove('abierta');
+        });
+        lista.appendChild(div);
+      });
+      lista.classList.add('abierta');
+    }
+
+    function onInput(){
+      clearTimeout(timer);
+      var valor = campo.textContent;
+      timer = setTimeout(function(){
+        cargarEx().then(function(){ render(buscarEx(valor)); });
+      }, 150);
+    }
+
+    campo.addEventListener('input', onInput);
+    campo.addEventListener('focus', function(){ cargarEx(); });
+    document.addEventListener('click', function(e){
+      if(!wrap.contains(e.target)) lista.classList.remove('abierta');
+    });
+  };
+
+  cargarEx();
+})();
+</script>
+
+<script>
+activarExamen('d1', 'c1');
+activarExamen('d2', 'c2');
+activarExamen('d3', 'c3');
+</script>
 </body></html>

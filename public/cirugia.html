@@ -590,4 +590,120 @@ function agregarBloque(){
 })();
 </script>
 
+
+<style>
+  .cx-wrap { position:relative; display:inline-block; width:100%; }
+  .cx-lista {
+    display:none; position:absolute; top:100%; left:0; background:#fff; border:1px solid #cdd7e5;
+    border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,.15); max-height:220px; overflow-y:auto;
+    z-index:5000; width:420px; max-width:90vw; font-family:Arial, sans-serif;
+  }
+  .cx-lista.abierta { display:block; }
+  .cx-item { padding:6px 10px; font-size:12px; cursor:pointer; border-bottom:1px solid #f0f0f0; }
+  .cx-item:hover { background:#eaf3ff; }
+  .cx-item b { color:#0C447C; }
+</style>
+<script>
+(function(){
+  var CX_URL = 'https://ofta-bots.vercel.app/api/cirugia';
+  var CX_CACHE_KEY = 'cirugias_catalogo_v1';
+  var cxDatos = null;
+
+  function normalizarCx(txt){
+    return (txt||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function cargarCx(){
+    return new Promise(function(resolve){
+      if(cxDatos){ resolve(cxDatos); return; }
+      var cache = localStorage.getItem(CX_CACHE_KEY);
+      if(cache){
+        try { cxDatos = JSON.parse(cache); resolve(cxDatos); return; } catch(e){}
+      }
+      fetch(CX_URL).then(function(r){ return r.json(); }).then(function(data){
+        cxDatos = data;
+        try { localStorage.setItem(CX_CACHE_KEY, JSON.stringify(data)); } catch(e){}
+        resolve(data);
+      }).catch(function(){ resolve(cxDatos); });
+    });
+  }
+
+  function buscarCx(termino){
+    if(!cxDatos || !termino || termino.length < 2) return [];
+    var t = normalizarCx(termino);
+    var resultados = [];
+    for(var i=0; i<cxDatos.length && resultados.length < 15; i++){
+      var it = cxDatos[i];
+      if(normalizarCx(it.nombre).indexOf(t) !== -1 || normalizarCx(it.cups).indexOf(t) === 0){
+        resultados.push(it);
+      }
+    }
+    return resultados;
+  }
+
+  // Conecta un campo de descripci\u00f3n de procedimiento a la b\u00fasqueda de cirug\u00edas.
+  // idDesc: campo de texto del procedimiento. idCod / idObs opcionales para autocompletar c\u00f3digo y observaciones.
+  window.activarCirugia = function(idDesc, idCod, idObs){
+    var campo = document.getElementById(idDesc);
+    if(!campo) return;
+
+    var wrap = document.createElement('span');
+    wrap.className = 'cx-wrap';
+    campo.parentNode.insertBefore(wrap, campo);
+    wrap.appendChild(campo);
+
+    var lista = document.createElement('div');
+    lista.className = 'cx-lista';
+    wrap.appendChild(lista);
+
+    var timer = null;
+
+    function render(resultados){
+      lista.innerHTML = '';
+      if(!resultados.length){ lista.classList.remove('abierta'); return; }
+      resultados.forEach(function(it){
+        var div = document.createElement('div');
+        div.className = 'cx-item';
+        div.innerHTML = '<b>' + (it.cups||'') + '</b> &mdash; ' + it.nombre;
+        div.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          campo.textContent = it.nombre;
+          if(idCod){ var elC = document.getElementById(idCod); if(elC) elC.textContent = it.cups || ''; }
+          if(idObs){ var elO = document.getElementById(idObs); if(elO) elO.textContent = it.obs || ''; }
+          // Guarda riesgos/beneficios/alternativa para que Consentimiento los recoja
+          try {
+            sessionStorage.setItem('contingencia_cirugia_seleccionada', JSON.stringify({
+              nombre: it.nombre, riesgos: it.riesgos || '', beneficios: it.beneficios || '', alternativa: it.alternativa || ''
+            }));
+          } catch(e){}
+          lista.classList.remove('abierta');
+        });
+        lista.appendChild(div);
+      });
+      lista.classList.add('abierta');
+    }
+
+    function onInput(){
+      clearTimeout(timer);
+      var valor = campo.textContent;
+      timer = setTimeout(function(){
+        cargarCx().then(function(){ render(buscarCx(valor)); });
+      }, 150);
+    }
+
+    campo.addEventListener('input', onInput);
+    campo.addEventListener('focus', function(){ cargarCx(); });
+    document.addEventListener('click', function(e){
+      if(!wrap.contains(e.target)) lista.classList.remove('abierta');
+    });
+  };
+
+  cargarCx();
+})();
+</script>
+
+<script>
+activarCirugia('desc_qx_1', 'cod_qx_1', 'obs_qx_1');
+activarCirugia('desc_qx_2', 'cod_qx_2', 'obs_qx_2');
+</script>
 </body></html>
