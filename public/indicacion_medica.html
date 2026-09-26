@@ -285,7 +285,7 @@ document.querySelectorAll('.fecha-actual').forEach(function(el){
       if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){
         datos[el.id] = el.value;
       } else if(el.hasAttribute('contenteditable')){
-        datos[el.id] = el.textContent;
+        datos[el.id] = el.innerText;
       }
     });
     if(typeof window.contadorBloques !== 'undefined') datos.__contadorBloques = window.contadorBloques;
@@ -319,7 +319,7 @@ document.querySelectorAll('.fecha-actual').forEach(function(el){
       var el = document.getElementById(id);
       if(!el || !datos[id]) return;
       if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = datos[id];
-      else if(el.hasAttribute('contenteditable')) el.textContent = datos[id];
+      else if(el.hasAttribute('contenteditable')) el.innerText = datos[id];
     });
   }
 

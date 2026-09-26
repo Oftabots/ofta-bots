@@ -169,7 +169,7 @@
 </style>
 </head>
 <body>
-<div class="toolbar"><a href="menu_contingencia.html" style="margin-right:14px;color:#1a73e8;text-decoration:none;font-size:13px;">← Menú</a><button onclick="intentarImprimir()">Imprimir / Guardar PDF</button></div>
+<div class="toolbar"><a href="menu_contingencia.html" style="margin-right:14px;color:#1a73e8;text-decoration:none;font-size:13px;">← Menú</a><button onclick="intentarImprimir()">Imprimir / Guardar PDF</button> <button onclick="descargarHistoriaWord()" style="background:#2e7d32;">💾 Guardar historia (Word)</button></div>
 <div class="hoja">
 
   <table class="marco">
@@ -456,7 +456,7 @@ function intentarImprimir(){
       if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){
         datos[el.id] = el.value;
       } else if(el.hasAttribute('contenteditable')){
-        datos[el.id] = el.textContent;
+        datos[el.id] = el.innerText;
       }
     });
     if(typeof window.contadorBloques !== 'undefined') datos.__contadorBloques = window.contadorBloques;
@@ -490,7 +490,7 @@ function intentarImprimir(){
       var el = document.getElementById(id);
       if(!el || !datos[id]) return;
       if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = datos[id];
-      else if(el.hasAttribute('contenteditable')) el.textContent = datos[id];
+      else if(el.hasAttribute('contenteditable')) el.innerText = datos[id];
     });
   }
 
@@ -510,4 +510,63 @@ function intentarImprimir(){
 })();
 </script>
 
+<script>
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function generarWordBlob(datos){
+  var html = ''
+    + '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="utf-8"><title>Historia Cl\u00ednica</title></head>'
+    + '<body style="font-family:Arial, sans-serif; font-size:12pt;">'
+    + '<h2>HISTORIA CL\u00cdNICA \u2014 SUBRED NORTE E.S.E. (Contingencia)</h2>'
+    + '<p><b>Fecha:</b> ' + datos.fechaLegible + '<br>'
+    + '<b>Paciente:</b> ' + datos.nombre + '<br>'
+    + '<b>Documento:</b> ' + datos.documento + '<br>'
+    + '<b>No. Historia:</b> ' + datos.noHistoria + '<br>'
+    + '<b>Edad:</b> ' + datos.edad + '<br>'
+    + '<b>Diagn\u00f3stico Principal:</b> ' + datos.diagnostico + '</p>'
+    + '<hr>'
+    + '<p style="white-space:pre-wrap;">' + datos.contenido.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</p>'
+    + '</body></html>';
+  return new Blob(['\ufeff', html], { type: 'application/msword' });
+}
+
+function nombreArchivoWord(documento, nombre, hoy){
+  var fechaArchivo = pad2(hoy.getDate()) + pad2(hoy.getMonth()+1) + hoy.getFullYear();
+  var nombreLimpio = (nombre || 'SIN_NOMBRE').replace(/[\\/:*?"<>|]/g, '');
+  return fechaArchivo + ' - ' + (documento || 'SIN_DOCUMENTO') + ' - ' + nombreLimpio + '.doc';
+}
+
+function descargarHistoriaWord(){
+  var hoy = new Date();
+  var documento = (document.getElementById('no_documento').textContent || '').trim();
+  var nombre = ((document.getElementById('primer_apellido').textContent || '') + ' ' + (document.getElementById('nombre_completo').textContent || '')).trim();
+  var contenido = (document.getElementById('historia_texto').innerText || '').trim();
+
+  if(!contenido){
+    alert('No hay nada escrito en la historia cl\u00ednica todav\u00eda.');
+    return;
+  }
+
+  var datos = {
+    fechaLegible: hoy.toLocaleDateString('es-CO', {weekday:'long', year:'numeric', month:'long', day:'numeric'}),
+    nombre: nombre || 'Sin nombre',
+    documento: documento || 'Sin documento',
+    noHistoria: (document.getElementById('no_historia').textContent || '').trim(),
+    edad: (document.getElementById('edad').textContent || '').trim(),
+    diagnostico: (document.getElementById('diagnostico').textContent || '').trim(),
+    contenido: contenido
+  };
+
+  var blob = generarWordBlob(datos);
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = nombreArchivoWord(documento, nombre, hoy);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+}
+</script>
 </body></html>

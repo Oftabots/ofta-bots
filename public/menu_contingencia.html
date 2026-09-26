@@ -225,10 +225,95 @@
 
 </div>
 <script>
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function generarWordBlob(datos){
+  var html = ''
+    + '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="utf-8"><title>Historia Clínica</title></head>'
+    + '<body style="font-family:Arial, sans-serif; font-size:12pt;">'
+    + '<h2>HISTORIA CLÍNICA — SUBRED NORTE E.S.E. (Contingencia)</h2>'
+    + '<p><b>Fecha:</b> ' + datos.fechaLegible + '<br>'
+    + '<b>Paciente:</b> ' + datos.nombre + '<br>'
+    + '<b>Documento:</b> ' + datos.documento + '<br>'
+    + '<b>No. Historia:</b> ' + datos.noHistoria + '<br>'
+    + '<b>Edad:</b> ' + datos.edad + '<br>'
+    + '<b>Diagnóstico Principal:</b> ' + datos.diagnostico + '</p>'
+    + '<hr>'
+    + '<p style="white-space:pre-wrap;">' + datos.contenido.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</p>'
+    + '</body></html>';
+  return new Blob(['\ufeff', html], { type: 'application/msword' });
+}
+
+function nombreArchivoWord(documento, nombre, hoy){
+  var fechaArchivo = pad2(hoy.getDate()) + pad2(hoy.getMonth()+1) + hoy.getFullYear();
+  var nombreLimpio = (nombre || 'SIN_NOMBRE').replace(/[\\/:*?"<>|]/g, '');
+  return fechaArchivo + ' - ' + (documento || 'SIN_DOCUMENTO') + ' - ' + nombreLimpio + '.doc';
+}
+
+function descargarHistoriaDesdeMenu(){
+  var rawPaciente = sessionStorage.getItem('contingencia_paciente');
+  if(!rawPaciente) return false;
+  var paciente;
+  try { paciente = JSON.parse(rawPaciente); } catch(e){ return false; }
+  var cedula = paciente.cedula || 'sin_paciente';
+
+  var rawBorrador = sessionStorage.getItem('borrador_historia_clinica.html_' + cedula);
+  if(!rawBorrador) return false;
+  var borrador;
+  try { borrador = JSON.parse(rawBorrador); } catch(e){ return false; }
+
+  var contenido = (borrador.historia_texto || '').trim();
+  if(!contenido) return false;
+
+  var hoy = new Date();
+  var nombre = ((borrador.primer_apellido||'') + ' ' + (borrador.nombre_completo||'')).trim() || paciente.nombre || 'Sin nombre';
+  var datos = {
+    fechaLegible: hoy.toLocaleDateString('es-CO', {weekday:'long', year:'numeric', month:'long', day:'numeric'}),
+    nombre: nombre,
+    documento: cedula,
+    noHistoria: borrador.no_historia || '',
+    edad: borrador.edad || '',
+    diagnostico: borrador.diagnostico || '',
+    contenido: contenido
+  };
+
+  var blob = generarWordBlob(datos);
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = nombreArchivoWord(cedula, nombre, hoy);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  return true;
+}
+
 document.getElementById('btn-nuevo-paciente').addEventListener('click', function(){
-  if(confirm('¿Borrar todos los datos de este paciente (nombre, diagnóstico, documentos empezados) y volver a la portada?')){
-    sessionStorage.clear();
-    window.location.href = 'contingencia.html';
+  var hayHistoria = false;
+  try {
+    var rawP = sessionStorage.getItem('contingencia_paciente');
+    if(rawP){
+      var ced = JSON.parse(rawP).cedula || 'sin_paciente';
+      var rawB = sessionStorage.getItem('borrador_historia_clinica.html_' + ced);
+      if(rawB){
+        var texto = (JSON.parse(rawB).historia_texto || '').trim();
+        hayHistoria = !!texto;
+      }
+    }
+  } catch(e){}
+
+  var mensaje = hayHistoria
+    ? '¿Borrar todos los datos de este paciente y volver a la portada?\n\nSe descargará primero un Word con la historia clínica escrita.'
+    : '¿Borrar todos los datos de este paciente (nombre, diagnóstico, documentos empezados) y volver a la portada?';
+
+  if(confirm(mensaje)){
+    if(hayHistoria) descargarHistoriaDesdeMenu();
+    setTimeout(function(){
+      sessionStorage.clear();
+      window.location.href = 'contingencia.html';
+    }, hayHistoria ? 400 : 0);
   }
 });
 </script>
