@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<style>
+  #auth-overlay {
+    position:fixed; inset:0; background:#f4f6f9; z-index:99999;
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    font-family: Arial, Helvetica, sans-serif;
+    visibility:visible;
+  }
+  #auth-overlay .caja {
+    background:#fff; border:1px solid #e2e6ec; border-radius:10px; padding:28px 26px;
+    width:280px; max-width:88vw; text-align:center; box-shadow:0 4px 18px rgba(0,0,0,.08);
+  }
+  #auth-overlay h3 { font-size:15px; margin:0 0 4px 0; }
+  #auth-overlay p { font-size:12px; color:#777; margin:0 0 16px 0; }
+  #auth-overlay input {
+    width:100%; padding:11px; font-size:20px; letter-spacing:6px; text-align:center;
+    border:1.5px solid #d0d5dd; border-radius:6px; box-sizing:border-box;
+  }
+  #auth-overlay input:focus { border-color:#1a73e8; outline:none; }
+  #auth-overlay button {
+    width:100%; margin-top:12px; background:#1a73e8; color:#fff; border:none;
+    padding:11px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer;
+  }
+  #auth-overlay .error { color:#c0392b; font-size:12px; margin-top:8px; min-height:16px; }
+
+  #btn-cerrar-sesion {
+    position:fixed; top:8px; right:10px; z-index:9000;
+    background:#fff; border:1px solid #e2e6ec; color:#888; font-size:11px;
+    padding:5px 10px; border-radius:5px; cursor:pointer;
+  }
+  #btn-cerrar-sesion:hover { background:#fdecea; color:#c0392b; border-color:#f5c6c2; }
+</style>
+<script>
+(function(){
+  // Cambia este valor para usar tu propia clave
+  var PIN_CORRECTO = '583204';
+  var AUTH_KEY = 'contingencia_auth_ok';
+  var AUTH_HORAS_VALIDEZ = 12;
+
+  function autenticado(){
+    var raw = localStorage.getItem(AUTH_KEY);
+    if(!raw) return false;
+    try {
+      var datos = JSON.parse(raw);
+      var horas = (Date.now() - datos.momento) / 3600000;
+      return horas < AUTH_HORAS_VALIDEZ;
+    } catch(e){ return false; }
+  }
+
+  function marcarAutenticado(){
+    localStorage.setItem(AUTH_KEY, JSON.stringify({momento: Date.now()}));
+  }
+
+  function cerrarSesion(){
+    localStorage.removeItem(AUTH_KEY);
+    location.reload();
+  }
+
+  function mostrarOverlay(){
+    var overlay = document.createElement('div');
+    overlay.id = 'auth-overlay';
+    overlay.innerHTML =
+      '<div class="caja">' +
+        '<h3>Bot de Contingencia</h3>' +
+        '<p>Ingresa la clave de acceso</p>' +
+        '<input type="password" id="auth-pin" inputmode="numeric" maxlength="6" autofocus>' +
+        '<button id="auth-btn">Entrar</button>' +
+        '<div class="error" id="auth-error"></div>' +
+      '</div>';
+    document.documentElement.appendChild(overlay);
+
+    var input = document.getElementById('auth-pin');
+    var boton = document.getElementById('auth-btn');
+    var error = document.getElementById('auth-error');
+
+    function intentar(){
+      if(input.value.trim() === PIN_CORRECTO){
+        marcarAutenticado();
+        overlay.remove();
+        document.documentElement.style.visibility = 'visible';
+        agregarBotonCerrar();
+      } else {
+        error.textContent = 'Clave incorrecta';
+        input.value = '';
+        input.focus();
+      }
+    }
+    boton.addEventListener('click', intentar);
+    input.addEventListener('keydown', function(e){ if(e.key === 'Enter') intentar(); });
+  }
+
+  function agregarBotonCerrar(){
+    if(document.getElementById('btn-cerrar-sesion')) return;
+    var btn = document.createElement('button');
+    btn.id = 'btn-cerrar-sesion';
+    btn.textContent = 'Cerrar sesión';
+    btn.addEventListener('click', cerrarSesion);
+    document.body.appendChild(btn);
+  }
+
+  // Ocultar todo hasta confirmar autenticación (evita ver el contenido un instante antes del PIN)
+  document.documentElement.style.visibility = 'hidden';
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if(autenticado()){
+      document.documentElement.style.visibility = 'visible';
+      agregarBotonCerrar();
+    } else {
+      mostrarOverlay();
+    }
+  });
+})();
+</script>
+<meta charset="UTF-8"><title>Contingencia &mdash; Órdenes y Fórmulas</title>
+<style>
+  * { box-sizing:border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; margin:0; background:#f4f6f9; padding-bottom:90px; }
+  .topbar {
+    background:#fff; border-bottom:1px solid #e2e6ec; padding:10px 16px;
+    display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100;
+  }
+  .topbar .paciente { font-size:13px; }
+  .topbar .paciente b { font-size:14px; }
+  .topbar a { font-size:12px; color:#1a73e8; text-decoration:none; }
+
+  .wrap { max-width:640px; margin:0 auto; padding:16px; }
+
+  .categoria {
+    background:#fff; border:1px solid #e2e6ec; border-radius:10px; margin-bottom:14px; overflow:hidden;
+  }
+  .categoria-header {
+    background:#185FA5; padding:12px 14px; display:flex; align-items:center; justify-content:space-between;
+    cursor:pointer; color:#fff;
+  }
+  .categoria-header.no-param { background:#B5541F; }
+  .categoria-header .titulo { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; }
+  .categoria-header .contador {
+    background:rgba(255,255,255,0.25); border-radius:10px; padding:2px 9px; font-size:12px;
+  }
+  .categoria-body { display:none; padding:10px 14px 14px 14px; }
+  .categoria.abierta .categoria-body { display:block; }
+  .categoria.abierta .flecha { transform:rotate(180deg); }
+  .flecha { transition:.2s; font-size:11px; }
+
+  .buscador-wrap { position:relative; margin-bottom:8px; }
+  .buscador-wrap input {
+    width:100%; padding:8px 8px 8px 30px; border:1px solid #cdd7e5; border-radius:8px; font-size:13px; box-sizing:border-box;
+  }
+  .buscador-wrap span { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:#888; }
+
+  .lista { max-height:280px; overflow-y:auto; }
+  .seccion-lbl { font-size:10px; font-weight:bold; color:#0C447C; text-transform:uppercase; letter-spacing:.5px; margin:8px 0 4px; }
+  .fila-item { padding:6px 0; border-bottom:1px solid #eef2f7; }
+  .fila-item .info { font-size:12.5px; color:#333; margin-bottom:4px; }
+  .fila-item .cod { font-size:10px; background:#E6F1FB; color:#0C447C; padding:1px 5px; border-radius:3px; font-weight:500; margin-right:4px; }
+  .fila-item .cod.libre { background:#FDEBE0; color:#B5541F; }
+  .acciones { display:flex; gap:4px; flex-wrap:wrap; }
+  .btn-add { background:#185FA5; color:#fff; border:none; padding:3px 11px; border-radius:5px; cursor:pointer; font-size:13px; font-weight:500; }
+  .btn-add.libre { background:#B5541F; }
+  .btn-ojo { font-size:11px; padding:3px 9px; border-radius:5px; cursor:pointer; background:#E6F1FB; color:#0C447C; border:1px solid #85B7EB; font-weight:500; }
+  .btn-ojo.libre { background:#FDEBE0; color:#B5541F; border-color:#E8B48F; }
+  .config-panel { display:none; margin-top:6px; padding:8px; background:#f8faff; border:1px solid #cdd7e5; border-radius:6px; }
+  .config-panel label { font-size:10px; font-weight:bold; color:#0C447C; display:block; margin-bottom:2px; }
+  .config-panel select, .config-panel textarea { width:100%; font-size:12px; padding:5px; border-radius:5px; border:1px solid #cdd7e5; margin-bottom:6px; }
+  .config-panel .btn-confirmar { background:#185FA5; color:#fff; border:none; padding:5px 14px; border-radius:5px; cursor:pointer; font-size:12px; }
+
+  .carrito-cat { border-top:2px solid #185FA5; margin-top:10px; padding-top:8px; }
+  .categoria-header.no-param ~ .categoria-body .carrito-cat { border-top-color:#B5541F; }
+  .carrito-cat .titulo-carrito { font-size:10px; font-weight:bold; color:#666; text-transform:uppercase; margin-bottom:6px; }
+  .carrito-item { display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #f0f0f0; gap:6px; }
+  .carrito-item .txt { font-size:12px; color:#333; flex:1; }
+  .carrito-item .quitar { color:#c0392b; cursor:pointer; font-size:13px; flex-shrink:0; }
+  .vacio-carrito { font-size:11.5px; color:#999; text-align:center; padding:6px; }
+
+  .estado-carga, .estado-error { text-align:center; color:#888; font-size:12.5px; padding:14px; }
+  .estado-error { color:#c0392b; }
+
+  .barra-inferior {
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #e2e6ec;
+    padding:10px 16px; display:flex; justify-content:space-between; align-items:center; z-index:200;
+  }
+  .barra-inferior .resumen { font-size:13px; color:#333; }
+  .barra-inferior button {
+    background:#1a73e8; color:#fff; border:none; padding:11px 22px; border-radius:6px; font-size:14px; cursor:pointer; font-weight:bold;
+  }
+  .barra-inferior button:disabled { background:#aac4ec; cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="paciente">Paciente: <b id="tb-nombre">&mdash;</b> &middot; C.C. <span id="tb-cedula">&mdash;</span></div>
+  <a href="portada.html">&larr; Editar datos</a>
+</div>
+
+<div class="wrap">
+
+  <!-- MEDICAMENTOS PARAMETRIZADOS -->
+  <div class="categoria" data-cat="param">
+    <div class="categoria-header" onclick="toggleCategoria('param')">
+      <span class="titulo">&#x1F48A; Medicamentos Parametrizados <span class="contador" id="cnt-param">0</span></span>
+      <span class="flecha">&#9660;</span>
+    </div>
+    <div class="categoria-body">
+      <div class="buscador-wrap"><span>&#x1F50D;</span><input type="text" placeholder="Buscar medicamento..." oninput="renderLista('param', this.value)"></div>
+      <div class="lista" id="lista-param"><div class="estado-carga">Cargando...</div></div>
+      <div class="carrito-cat">
+        <div class="titulo-carrito">Seleccionados</div>
+        <div id="carrito-param"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEDICAMENTOS NO PARAMETRIZADOS -->
+  <div class="categoria" data-cat="libre">
+    <div class="categoria-header no-param" onclick="toggleCategoria('libre')">
+      <span class="titulo">&#x1F4DD; Medicamentos No Parametrizados <span class="contador" id="cnt-libre">0</span></span>
+      <span class="flecha">&#9660;</span>
+    </div>
+    <div class="categoria-body">
+      <div class="buscador-wrap"><span>&#x1F50D;</span><input type="text" placeholder="Buscar medicamento..." oninput="renderLista('libre', this.value)"></div>
+      <div class="lista" id="lista-libre"><div class="estado-carga">Cargando...</div></div>
+      <div class="carrito-cat">
+        <div class="titulo-carrito">Seleccionados</div>
+        <div id="carrito-libre"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXAMENES -->
+  <div class="categoria" data-cat="examen">
+    <div class="categoria-header" onclick="toggleCategoria('examen')">
+      <span class="titulo">&#x1F52C; Exámenes <span class="contador" id="cnt-examen">0</span></span>
+      <span class="flecha">&#9660;</span>
+    </div>
+    <div class="categoria-body">
+      <div class="buscador-wrap"><span>&#x1F50D;</span><input type="text" placeholder="Buscar examen..." oninput="renderLista('examen', this.value)"></div>
+      <div class="lista" id="lista-examen"><div class="estado-carga">Cargando...</div></div>
+      <div class="carrito-cat">
+        <div class="titulo-carrito">Seleccionados</div>
+        <div id="carrito-examen"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROCEDIMIENTOS -->
+  <div class="categoria" data-cat="proc">
+    <div class="categoria-header" onclick="toggleCategoria('proc')">
+      <span class="titulo">&#x1F6E0; Procedimientos <span class="contador" id="cnt-proc">0</span></span>
+      <span class="flecha">&#9660;</span>
+    </div>
+    <div class="categoria-body">
+      <div class="buscador-wrap"><span>&#x1F50D;</span><input type="text" placeholder="Buscar procedimiento..." oninput="renderLista('proc', this.value)"></div>
+      <div class="lista" id="lista-proc"><div class="estado-carga">Cargando...</div></div>
+      <div class="carrito-cat">
+        <div class="titulo-carrito">Seleccionados</div>
+        <div id="carrito-proc"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="barra-inferior">
+  <span class="resumen"><b id="total-general">0</b> ítem(s) seleccionados</span>
+  <button id="btn-continuar" disabled onclick="continuarARevision()">Continuar a revisión &rarr;</button>
+</div>
+
+<script>
+const BASE = 'https://ofta-bots.vercel.app';
+const ENDPOINTS = {
+  param: BASE + '/api/formulaDinamica',
+  libre: BASE + '/api/formulacion',
+  examen: BASE + '/api/examenes',
+  proc: BASE + '/api/procedimientos'
+};
+
+let datos = { param: [], libre: [], examen: [], proc: [] };
+let carritos = { param: [], libre: [], examen: [], proc: [] };
+
+// ---- Cargar datos del paciente desde la portada ----
+(function cargarPaciente(){
+  const raw = sessionStorage.getItem('contingencia_paciente');
+  if(raw){
+    const p = JSON.parse(raw);
+    document.getElementById('tb-nombre').textContent = p.nombre || '—';
+    document.getElementById('tb-cedula').textContent = p.cedula || '—';
+  }
+})();
+
+// ---- Cache local con fallback (igual patrón que tus endpoints Vercel, pero en el navegador) ----
+async function cargarCategoria(cat){
+  const cacheKey = 'contingencia_cache_' + cat;
+  const cacheTimeKey = cacheKey + '_time';
+  try{
+    const resp = await fetch(ENDPOINTS[cat]);
+    const json = await resp.json();
+    localStorage.setItem(cacheKey, JSON.stringify(json));
+    localStorage.setItem(cacheTimeKey, Date.now().toString());
+    return json;
+  }catch(err){
+    const cached = localStorage.getItem(cacheKey);
+    if(cached) return JSON.parse(cached);
+    throw err;
+  }
+}
+
+function normalizar(cat, json){
+  if(cat === 'examen'){
+    const generales = (json.generales||[]).map(e=>({...e, _grupo:'general'}));
+    const oftalmo = (json.oftalmo||[]).map(e=>({...e, _grupo:'oftalmo'}));
+    return [...generales, ...oftalmo];
+  }
+  return json;
+}
+
+async function initCategoria(cat){
+  const listaDiv = document.getElementById('lista-' + cat);
+  try{
+    const json = await cargarCategoria(cat);
+    datos[cat] = normalizar(cat, json);
+    renderLista(cat, '');
+  }catch(err){
+    listaDiv.innerHTML = '<div class="estado-error">No se pudo cargar (sin conexión y sin caché previo). Reintenta cuando tengas internet.</div>';
+  }
+}
+
+function contieneXxx(txt){ return (txt||'').toLowerCase().includes('xxx'); }
+function textoOjo(ojo){ return ojo==='OD'?'OJO DERECHO':ojo==='OI'?'OJO IZQUIERDO':'AMBOS OJOS'; }
+
+// ---------- RENDER: parametrizados / libres (medicamentos) ----------
+function renderMeds(cat, filtro){
+  const listaDiv = document.getElementById('lista-' + cat);
+  const term = filtro.toLowerCase().trim();
+  const items = datos[cat].filter(m => !term || m.nombre.toLowerCase().includes(term) ||
+    (cat==='param' && m.codigo && m.codigo.toLowerCase().includes(term)) ||
+    (cat==='libre' && m.principioActivo && m.principioActivo.toLowerCase().includes(term)));
+  listaDiv.innerHTML = '';
+  if(!items.length){ listaDiv.innerHTML = '<div class="estado-carga">Sin resultados</div>'; return; }
+  const claseLibre = cat === 'libre' ? ' libre' : '';
+  items.forEach(med=>{
+    const row = document.createElement('div');
+    row.className = 'fila-item';
+    const sub = cat === 'param' ? (med.codigo + ' · ' + med.via) : (med.principioActivo + ' · ' + med.presentacion);
+    row.innerHTML = '<div class="info"><span class="cod' + claseLibre + '">' + (cat==='param'?med.codigo:med.principioActivo) + '</span> ' + med.nombre + '</div>';
+    const acciones = document.createElement('div');
+    acciones.className = 'acciones';
+    const textoIndicacion = cat === 'param' ? med.indicacion : med.dosificacion;
+    if(contieneXxx(textoIndicacion)){
+      ['OD','OI','AO'].forEach(ojo=>{
+        const b = document.createElement('button');
+        b.className = 'btn-ojo' + claseLibre;
+        b.textContent = ojo;
+        b.onclick = () => agregarCarrito(cat, {med, ojo, nombre: med.nombre});
+        acciones.appendChild(b);
+      });
+    } else {
+      const b = document.createElement('button');
+      b.className = 'btn-add' + claseLibre;
+      b.textContent = '+';
+      b.onclick = () => agregarCarrito(cat, {med, ojo:'', nombre: med.nombre});
+      acciones.appendChild(b);
+    }
+    row.appendChild(acciones);
+    listaDiv.appendChild(row);
+  });
+}
+
+// ---------- RENDER: examenes ----------
+function renderExamenes(filtro){
+  const listaDiv = document.getElementById('lista-examen');
+  const term = filtro.toLowerCase().trim();
+  const items = datos.examen.filter(e => !term || e.nombre.toLowerCase().includes(term) || (e.cups||'').includes(term));
+  listaDiv.innerHTML = '';
+  if(!items.length){ listaDiv.innerHTML = '<div class="estado-carga">Sin resultados</div>'; return; }
+  const generales = items.filter(e=>e._grupo==='general');
+  const oftalmo = items.filter(e=>e._grupo==='oftalmo');
+  function pintarSeccion(txt, arr, conOjo){
+    if(!arr.length) return;
+    const h = document.createElement('div'); h.className='seccion-lbl'; h.textContent = txt; listaDiv.appendChild(h);
+    arr.forEach(ex=>{
+      const row = document.createElement('div'); row.className='fila-item';
+      row.innerHTML = '<div class="info"><span class="cod">' + ex.cups + '</span> ' + ex.nombre + '</div>';
+      const acciones = document.createElement('div'); acciones.className='acciones';
+      if(conOjo){
+        ['OD','OI','AO'].forEach(ojo=>{
+          const b=document.createElement('button'); b.className='btn-ojo'; b.textContent=ojo;
+          b.onclick=()=>agregarCarrito('examen', {ex, ojo, nombre: ex.nombre});
+          acciones.appendChild(b);
+        });
+      } else {
+        const b=document.createElement('button'); b.className='btn-add'; b.textContent='+';
+        b.onclick=()=>agregarCarrito('examen', {ex, ojo:'', nombre: ex.nombre});
+        acciones.appendChild(b);
+      }
+      row.appendChild(acciones); listaDiv.appendChild(row);
+    });
+  }
+  pintarSeccion('Generales', generales, false);
+  pintarSeccion('Oftalmológicos', oftalmo, true);
+}
+
+// ---------- RENDER: procedimientos ----------
+function renderProcedimientos(filtro){
+  const listaDiv = document.getElementById('lista-proc');
+  const term = filtro.toLowerCase().trim();
+  const items = datos.proc.filter(p => !term || p.nombre.toLowerCase().includes(term) || (p.cups||'').includes(term));
+  listaDiv.innerHTML = '';
+  if(!items.length){ listaDiv.innerHTML = '<div class="estado-carga">Sin resultados</div>'; return; }
+  items.forEach(proc=>{
+    const row = document.createElement('div'); row.className='fila-item';
+    const info = document.createElement('div'); info.className='info';
+    info.innerHTML = '<span class="cod">' + proc.cups + '</span> ' + proc.nombre;
+    row.appendChild(info);
+    const btnConfig = document.createElement('button');
+    btnConfig.className = 'btn-add'; btnConfig.textContent = 'Configurar';
+    const configDiv = document.createElement('div'); configDiv.className = 'config-panel';
+    const descOpciones = (proc.descripcion||'').split('|').map(s=>s.trim()).filter(Boolean);
+    const obsOpciones = (proc.observaciones||'').split('|').map(s=>s.trim()).filter(Boolean);
+    const tieneOjo = contieneXxx(proc.descripcion);
+    let selOjoHTML = '';
+    if(tieneOjo){
+      selOjoHTML = '<label>Ojo</label><select class="sel-ojo"><option value="OD">OD</option><option value="OI">OI</option><option value="AO">AO</option></select>';
+    }
+    configDiv.innerHTML =
+      (descOpciones.length ? '<label>Descripción</label><select class="sel-desc">' + descOpciones.map(o=>'<option>'+o+'</option>').join('') + '</select>' : '') +
+      (obsOpciones.length ? '<label>Observaciones</label><select class="sel-obs">' + obsOpciones.map(o=>'<option>'+o+'</option>').join('') + '</select>' : '') +
+      selOjoHTML +
+      '<button class="btn-confirmar">Agregar</button>';
+    btnConfig.onclick = () => { configDiv.style.display = configDiv.style.display === 'block' ? 'none' : 'block'; };
+    configDiv.querySelector('.btn-confirmar').onclick = () => {
+      const desc = configDiv.querySelector('.sel-desc') ? configDiv.querySelector('.sel-desc').value : proc.descripcion;
+      const obs = configDiv.querySelector('.sel-obs') ? configDiv.querySelector('.sel-obs').value : proc.observaciones;
+      const ojo = configDiv.querySelector('.sel-ojo') ? configDiv.querySelector('.sel-ojo').value : '';
+      agregarCarrito('proc', {proc, desc, obs, ojo, nombre: proc.nombre});
+      configDiv.style.display = 'none';
+    };
+    row.appendChild(btnConfig); row.appendChild(configDiv);
+    listaDiv.appendChild(row);
+  });
+}
+
+function renderLista(cat, filtro){
+  if(cat === 'param' || cat === 'libre') renderMeds(cat, filtro);
+  else if(cat === 'examen') renderExamenes(filtro);
+  else if(cat === 'proc') renderProcedimientos(filtro);
+}
+
+// ---------- CARRITO ----------
+function agregarCarrito(cat, item){
+  carritos[cat].push(item);
+  actualizarCarritoUI(cat);
+  guardarCarritos();
+}
+function quitarCarrito(cat, idx){
+  carritos[cat].splice(idx,1);
+  actualizarCarritoUI(cat);
+  guardarCarritos();
+}
+function actualizarCarritoUI(cat){
+  const cont = document.getElementById('carrito-' + cat);
+  const arr = carritos[cat];
+  document.getElementById('cnt-' + cat).textContent = arr.length;
+  cont.innerHTML = '';
+  if(!arr.length){ cont.innerHTML = '<div class="vacio-carrito">Sin seleccionados</div>'; }
+  else {
+    arr.forEach((item, idx)=>{
+      const row = document.createElement('div'); row.className='carrito-item';
+      const badge = item.ojo ? ' (' + item.ojo + ')' : '';
+      row.innerHTML = '<span class="txt">' + item.nombre + badge + '</span>';
+      const x = document.createElement('span'); x.className='quitar'; x.textContent='✕';
+      x.onclick = () => quitarCarrito(cat, idx);
+      row.appendChild(x);
+      cont.appendChild(row);
+    });
+  }
+  actualizarTotalGeneral();
+}
+function actualizarTotalGeneral(){
+  const total = Object.values(carritos).reduce((a,c)=>a+c.length,0);
+  document.getElementById('total-general').textContent = total;
+  document.getElementById('btn-continuar').disabled = total === 0;
+}
+function guardarCarritos(){
+  sessionStorage.setItem('contingencia_carritos', JSON.stringify(carritos));
+}
+
+function toggleCategoria(cat){
+  document.querySelectorAll('.categoria').forEach(el=>{
+    if(el.dataset.cat === cat) el.classList.toggle('abierta');
+    else el.classList.remove('abierta');
+  });
+}
+
+function continuarARevision(){
+  guardarCarritos();
+  window.location.href = 'revision.html';
+}
+
+// ---- Restaurar carritos si el usuario vuelve de la revisión ----
+(function restaurarCarritos(){
+  const raw = sessionStorage.getItem('contingencia_carritos');
+  if(raw){
+    const guardado = JSON.parse(raw);
+    Object.keys(carritos).forEach(cat=>{
+      if(guardado[cat]) carritos[cat] = guardado[cat];
+    });
+  }
+})();
+
+['param','libre','examen','proc'].forEach(initCategoria);
+Object.keys(carritos).forEach(actualizarCarritoUI);
+document.querySelector('.categoria[data-cat="param"]').classList.add('abierta');
+</script>
+</body></html>
