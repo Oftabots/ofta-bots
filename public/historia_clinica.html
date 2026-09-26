@@ -54,7 +54,7 @@
 
   function cerrarSesion(){
     localStorage.removeItem(AUTH_KEY);
-    location.reload();
+    window.location.href = 'menu_contingencia.html';
   }
 
   function mostrarOverlay(){
@@ -169,7 +169,7 @@
 </style>
 </head>
 <body>
-<div class="toolbar"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
+<div class="toolbar"><a href="menu_contingencia.html" style="margin-right:14px;color:#1a73e8;text-decoration:none;font-size:13px;">← Menú</a><button onclick="intentarImprimir()">Imprimir / Guardar PDF</button></div>
 <div class="hoja">
 
   <table class="marco">
@@ -260,7 +260,7 @@
   var raw = sessionStorage.getItem('contingencia_paciente');
   if(!raw) return;
   var p = JSON.parse(raw);
-  var mapa = {"nombre_completo": "nombre", "no_documento": "cedula", "edad": "edad_calculada", "no_historia": "cedula"};
+  var mapa = {"nombre_completo": "nombres", "primer_apellido": "apellidos", "no_documento": "cedula", "edad": "edad_calculada", "no_historia": "cedula"};
   Object.keys(mapa).forEach(function(idHtml){
     var valor = p[mapa[idHtml]];
     if(!valor) return;
@@ -415,4 +415,23 @@
 </script>
 
 <script>activarCie10('diagnostico');</script>
+<script>
+function intentarImprimir(){
+  var raw = sessionStorage.getItem('contingencia_diagnostico');
+  var campoTexto = (document.getElementById('diagnostico').textContent || '').trim();
+  var valido = false;
+  if(raw && campoTexto){
+    try {
+      var d = JSON.parse(raw);
+      if(campoTexto === (d.codigo + ' - ' + d.descripcion)) valido = true;
+    } catch(e){}
+  }
+  if(!valido){
+    alert('Elige el diagnóstico principal de la lista CIE-10 antes de imprimir (haz clic en el campo y busca el código, no lo escribas a mano).');
+    document.getElementById('diagnostico').focus();
+    return;
+  }
+  window.print();
+}
+</script>
 </body></html>

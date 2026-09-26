@@ -54,7 +54,7 @@
 
   function cerrarSesion(){
     localStorage.removeItem(AUTH_KEY);
-    location.reload();
+    window.location.href = 'menu_contingencia.html';
   }
 
   function mostrarOverlay(){
@@ -152,8 +152,13 @@
   </div>
 
   <div class="campo-grupo">
-    <label for="nombre">Nombre del paciente</label>
-    <input type="text" id="nombre" placeholder="Apellidos y nombres">
+    <label for="apellidos">Apellidos</label>
+    <input type="text" id="apellidos" placeholder="Apellidos del paciente">
+  </div>
+
+  <div class="campo-grupo">
+    <label for="nombres">Nombres</label>
+    <input type="text" id="nombres" placeholder="Nombres del paciente">
   </div>
 
   <div class="campo-grupo">
@@ -188,7 +193,8 @@ function calcularEdad(fechaStr){
 }
 
 var $cedula = document.getElementById('cedula');
-var $nombre = document.getElementById('nombre');
+var $apellidos = document.getElementById('apellidos');
+var $nombres = document.getElementById('nombres');
 var $fecha = document.getElementById('fecha_nac');
 var $aseg = document.getElementById('aseguradora');
 var $asegOtra = document.getElementById('aseguradora_otra');
@@ -204,16 +210,20 @@ $aseg.addEventListener('change', function(){
 });
 
 function validar(){
-  var ok = $cedula.value.trim() && $nombre.value.trim() && $fecha.value;
+  var ok = $cedula.value.trim() && $apellidos.value.trim() && $nombres.value.trim() && $fecha.value;
   $btn.disabled = !ok;
 }
-[$cedula,$nombre,$fecha].forEach(function(el){ el.addEventListener('input', validar); });
+[$cedula,$apellidos,$nombres,$fecha].forEach(function(el){ el.addEventListener('input', validar); });
 
 $btn.addEventListener('click', function(){
   var aseguradora = ($aseg.value === '__otra__') ? $asegOtra.value.trim() : $aseg.value;
+  var apellidos = $apellidos.value.trim().toUpperCase();
+  var nombres = $nombres.value.trim().toUpperCase();
   var datos = {
     cedula: $cedula.value.trim(),
-    nombre: $nombre.value.trim(),
+    apellidos: apellidos,
+    nombres: nombres,
+    nombre: (apellidos + ' ' + nombres).trim(),
     fecha_nacimiento: $fecha.value,
     edad_calculada: calcularEdad($fecha.value),
     aseguradora: aseguradora
