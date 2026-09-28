@@ -22,6 +22,7 @@
     width:100%; margin-top:12px; background:#1a73e8; color:#fff; border:none;
     padding:11px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer;
   }
+  #auth-overlay button:disabled { background:#aac4ec; cursor:not-allowed; }
   #auth-overlay .error { color:#c0392b; font-size:12px; margin-top:8px; min-height:16px; }
 
   #btn-cerrar-sesion {
@@ -33,8 +34,7 @@
 </style>
 <script>
 (function(){
-  // Cambia este valor para usar tu propia clave
-  var PIN_CORRECTO = '583204';
+  var VERIFICAR_URL = 'https://ofta-bots.vercel.app/api/cirugia';
   var AUTH_KEY = 'contingencia_auth_ok';
   var AUTH_HORAS_VALIDEZ = 12;
 
@@ -54,7 +54,18 @@
 
   function cerrarSesion(){
     localStorage.removeItem(AUTH_KEY);
-    window.location.href = 'menu_contingencia.html';
+    location.reload();
+  }
+
+  function verificarPinRemoto(pin){
+    return fetch(VERIFICAR_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'verificarPin', pin: pin })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){ return !!data.ok; })
+    .catch(function(){ return null; });
   }
 
   function mostrarOverlay(){
@@ -75,16 +86,29 @@
     var error = document.getElementById('auth-error');
 
     function intentar(){
-      if(input.value.trim() === PIN_CORRECTO){
-        marcarAutenticado();
-        overlay.remove();
-        document.documentElement.style.visibility = 'visible';
-        agregarBotonCerrar();
-      } else {
-        error.textContent = 'Clave incorrecta';
-        input.value = '';
-        input.focus();
-      }
+      var pin = input.value.trim();
+      if(!pin) return;
+      boton.disabled = true;
+      boton.textContent = 'Verificando...';
+      error.textContent = '';
+
+      verificarPinRemoto(pin).then(function(resultado){
+        boton.disabled = false;
+        boton.textContent = 'Entrar';
+
+        if(resultado === true){
+          marcarAutenticado();
+          overlay.remove();
+          document.documentElement.style.visibility = 'visible';
+          agregarBotonCerrar();
+        } else if(resultado === false){
+          error.textContent = 'Clave incorrecta';
+          input.value = '';
+          input.focus();
+        } else {
+          error.textContent = 'Sin conexión. Revisa tu internet e intenta de nuevo.';
+        }
+      });
     }
     boton.addEventListener('click', intentar);
     input.addEventListener('keydown', function(e){ if(e.key === 'Enter') intentar(); });
@@ -99,7 +123,6 @@
     document.body.appendChild(btn);
   }
 
-  // Ocultar todo hasta confirmar autenticación (evita ver el contenido un instante antes del PIN)
   document.documentElement.style.visibility = 'hidden';
 
   document.addEventListener('DOMContentLoaded', function(){
@@ -188,6 +211,27 @@
     .hoja { border:none; margin:0 auto; page-break-after:always; }
     .hoja:last-child { page-break-after:auto; }
   }
+</style>
+<style media="print">
+/* --- Impresión limpia: sin encabezado/pie del navegador, sin botones ni textos de ayuda --- */
+@page { size: letter; margin: 0; }
+html, body { margin:0 !important; padding:0 !important; background:#fff !important; }
+.hoja { padding: 10mm 12mm !important; margin: 0 auto !important; border: none !important;
+        box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+#btn-cerrar-sesion, .toolbar, .btn-agregar, #btn-agregar-examen, #btn-agregar-med, .solo-pantalla,
+.cie10-lista, .ex-lista, .cx-lista, .med-lista, .medl-lista { display:none !important; }
+.oculto-impresion { display:none !important; }
+.campo:empty:before, .blank:empty:before, [data-ph]:empty:before { content:'' !important; }
+.campo, .blank { background:transparent !important; box-shadow:none !important; }
+.campo-variable { border-bottom:none !important; }
+input, textarea { border-bottom:none !important; }
+input::placeholder, textarea::placeholder { color:transparent !important; }
+.parrafo { font-size:9.4px !important; line-height:1.3 !important; padding:5px 8px !important; }
+.parrafo p { margin:2px 0 !important; }
+.parrafo ol.num > li { margin-bottom:3px !important; }
+.parrafo ol.sub > li { margin-bottom:1px !important; }
+table.campos td { padding:2px 6px !important; font-size:10.5px !important; }
+.hoja { padding: 7mm 10mm !important; }
 </style>
 </head>
 <body>
